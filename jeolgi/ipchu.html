@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>입추 — 더위 속에서 가을이 시작되는 자리 — 여덟글자</title>
+<meta name="description" content="입추(立秋) — 더위 속에서 가을이 시작되는 자리. 이 절기의 뜻과 이 보름을 지나는 법.">
+<link rel="canonical" href="https://eightletters-web.pages.dev/jeolgi/ipchu">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/icons/favicon-64.png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#35714F">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="여덟글자">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="입추 — 더위 속에서 가을이 시작되는 자리 — 여덟글자">
+<meta property="og:description" content="입추(立秋) — 더위 속에서 가을이 시작되는 자리. 이 절기의 뜻과 이 보름을 지나는 법.">
+<meta property="og:url" content="https://eightletters-web.pages.dev/jeolgi/ipchu">
+<meta property="og:image" content="https://eightletters-web.pages.dev/assets/img/og-jeolgi.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Article","headline":"입추 — 더위 속에서 가을이 시작되는 자리","inLanguage":"ko","author":{"@type":"Organization","name":"여덟글자"},"publisher":{"@type":"Organization","name":"여덟글자"},"mainEntityOfPage":"https://eightletters-web.pages.dev/jeolgi/ipchu"}
+</script>
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="site-head"></header>
+
+<main class="wrap" id="main">
+  <article class="block" style="max-width:720px;">
+    <div class="jg-head">
+      <h1>입추</h1><span class="han">立秋</span>
+      <span style="margin-left:auto;font-size:12px;color:var(--mute);">스물넷 중 13번째</span>
+    </div>
+    <p style="font-size:15px;color:var(--sub);margin:0 0 20px;">더위 속에서 가을이 시작되는 자리</p>
+
+    <section class="ilju-sec">
+      <h2>이 절기의 자리</h2>
+      <p>절기는 태양이 지나는 자리를 스물넷으로 나눈 것이에요. 날짜는 해마다 하루쯤 움직이지만 자리는 움직이지 않아요. 가을의 절기라 금(金)의 기운 — 거두고 매듭짓는 힘 — 이 짙어지는 때예요.</p>
+    </section>
+
+    <section class="ilju-sec">
+      <h2>이 보름을 지나는 법</h2>
+      <p>더위 속에서 가을이 시작돼요. 아직 덥지만 방향은 이미 바뀌었어요. 거둘 것의 목록을 미리 적어 보세요.</p>
+      <p class="sec-note" id="jgWhen" style="margin-top:10px;"></p>
+    </section>
+
+    <section class="ilju-sec" style="border-top:1px solid var(--line);padding-top:20px;margin-top:30px;">
+      <p style="font-size:13px;color:var(--sub);margin:0 0 14px;">이 절기가 당신에게 받는 계절인지 단련의 계절인지는 당신의 일간에 따라 달라져요. 절기 편지에서 이어서 읽을 수 있어요.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a class="btn btn-primary btn-sm" href="/time">나의 절기 편지 읽기</a>
+        <a class="btn btn-soft btn-sm" href="/jeolgi">스물네 절기 전부 보기</a>
+      </div>
+      <p style="font-size:12.5px;color:var(--mute);margin:16px 0 0;">
+        ← <a href="/jeolgi/daeseo" style="color:var(--brand-deep);">대서</a> ·
+        <a href="/jeolgi/cheoseo" style="color:var(--brand-deep);">처서</a> →</p>
+    </section>
+  </article>
+</main>
+
+<footer class="site-foot"></footer>
+<nav class="tabbar" aria-label="하단 메뉴"></nav>
+
+<script type="module">
+import { boot } from '/assets/js/app.js';
+import { termsOfYear } from '/assets/js/saju.js';
+const ctx = boot(null);
+const { t } = ctx;
+const sy = (t.mo === 1 || (t.mo === 2 && t.d < 4)) ? t.y - 1 : t.y;
+const tm = termsOfYear(sy).find(x => x.name === '입추');
+if (tm) document.getElementById('jgWhen').textContent =
+  `올해의 ${'입추'}은 ${tm.mo}월 ${tm.d}일이에요.`;
+</script>
+</body>
+</html>

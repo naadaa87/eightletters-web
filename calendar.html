@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>만세력 — 여덟글자</title>
+<meta name="description" content="생년월일시를 여덟 글자로 바꿔 주는 만세력. 태양 황경 직접 계산, 서머타임 보정, 조자시 기준을 공개합니다.">
+<link rel="canonical" href="https://eightletters-web.pages.dev/calendar">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/icons/favicon-64.png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#35714F">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="여덟글자">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="만세력 — 여덟글자">
+<meta property="og:description" content="생년월일시를 여덟 글자로 바꿔 주는 만세력. 태양 황경 직접 계산, 서머타임 보정, 조자시 기준을 공개합니다.">
+<meta property="og:url" content="https://eightletters-web.pages.dev/calendar">
+<meta property="og:image" content="https://eightletters-web.pages.dev/assets/img/og-saju.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="site-head"></header>
+
+<main class="wrap" id="main">
+  <section class="block" style="margin-top:26px;">
+    <div class="sec-head"><h2>만세력</h2><span class="more">계산 방식을 숨기지 않아요</span></div>
+    <p style="font-size:14px;color:var(--sub);line-height:1.95;max-width:680px;margin:0 0 18px;">
+      만세력은 생년월일시를 여덟 글자로 바꿔 주는 달력이에요. 여덟글자의 만세력은 표를 베끼지 않고
+      태양의 위치를 직접 계산해요. 연주는 입춘, 월주는 열두 절기, 일주는 율리우스 적일,
+      시주는 오자둔 조자시 기준이에요. 서머타임 시기의 출생은 자동으로 한 시간을 되돌려 계산하고,
+      그 사실을 알려 드려요.</p>
+    <div class="panel form-card" style="max-width:560px;margin:0;">
+      <div class="f-field"><label for="cY">생년월일</label>
+        <input id="cY" type="number" inputmode="numeric" placeholder="1990" min="1900" max="2100" style="max-width:86px;"><span style="color:var(--mute)">년</span>
+        <input id="cM" type="number" inputmode="numeric" placeholder="7" min="1" max="12" style="max-width:56px;"><span style="color:var(--mute)">월</span>
+        <input id="cD" type="number" inputmode="numeric" placeholder="15" min="1" max="31" style="max-width:56px;"><span style="color:var(--mute)">일</span>
+      </div>
+      <div class="f-field"><label for="cH">태어난 시간</label><select id="cH"><option value="">모름 · 여섯 글자로</option></select></div>
+      <div class="f-field"><label>성별 <span style="font-weight:400;color:var(--mute2);">(대운 방향 계산에만 써요)</span></label>
+        <div class="lens-pills"><button type="button" class="pill on" id="cF">여성</button><button type="button" class="pill" id="cMale">남성</button></div>
+      </div>
+      <button class="btn btn-primary" id="cGo" style="width:100%;">여덟 글자 보기</button>
+    </div>
+    <div id="cOut" hidden style="margin-top:22px;"></div>
+  </section>
+</main>
+
+<footer class="site-foot"></footer>
+<nav class="tabbar" aria-label="하단 메뉴"></nav>
+
+<script type="module">
+import { boot, toast } from '/assets/js/app.js';
+import { fourPillars, daeun, tenGod, TEN_GODS, termInfo, fmt, STEMS, BRANCHES, ELEMENTS, ELEMENTS_HANJA } from '/assets/js/saju.js';
+const ctx = boot(null);
+const HOURS = [['23','자시 · 밤 11시'],['1','축시 · 새벽 1시'],['3','인시 · 새벽 3시'],['5','묘시 · 새벽 5시'],['7','진시 · 아침 7시'],['9','사시 · 오전 9시'],['11','오시 · 낮 11시'],['13','미시 · 오후 1시'],['15','신시 · 오후 3시'],['17','유시 · 오후 5시'],['19','술시 · 저녁 7시'],['21','해시 · 밤 9시']];
+const sel = document.getElementById('cH');
+for (const [v,l] of HOURS) sel.insertAdjacentHTML('beforeend', `<option value="${v}">${l} 무렵</option>`);
+let g = 'F';
+document.getElementById('cF').onclick = e => { g='F'; e.target.classList.add('on'); document.getElementById('cMale').classList.remove('on'); };
+document.getElementById('cMale').onclick = e => { g='M'; e.target.classList.add('on'); document.getElementById('cF').classList.remove('on'); };
+document.getElementById('cGo').onclick = () => {
+  const y=+cY.value, mo=+cM.value, d=+cD.value;
+  if (!y||!mo||!d) { toast('생년월일을 확인해 주세요'); return; }
+  const hv = sel.value === '' ? null : +sel.value;
+  const fp = fourPillars(y, mo, d, hv);
+  const P = fp.pillars;
+  const cell = (label, p) => p ? `<div style="text-align:center;"><div style="font-size:11px;color:var(--mute);">${label}</div>
+    <div class="gz-big" style="font-size:30px;">${STEMS[p.stem]}</div><div class="gz-big" style="font-size:30px;">${BRANCHES[p.branch]}</div></div>`
+    : `<div style="text-align:center;color:var(--mute2);"><div style="font-size:11px;">시주</div><div style="font-size:26px;">—<br>—</div></div>`;
+  const du = daeun(y, mo, d, hv, g);
+  const ti = termInfo(y, mo, d);
+  document.getElementById('cOut').hidden = false;
+  document.getElementById('cOut').innerHTML = `
+    <div class="panel">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:420px;margin:0 auto 14px;">
+        ${cell('시주',P.hour)}${cell('일주',P.day)}${cell('월주',P.month)}${cell('연주',P.year)}
+      </div>
+      ${fp.dst ? '<p class="sec-note" style="text-align:center;color:var(--el-text);">이 시기에는 서머타임으로 시계를 한 시간 앞당겨 썼어요. 시계 시각에서 한 시간을 되돌려 계산했습니다.</p>' : ''}
+      ${hv === 23 ? '<p class="sec-note" style="text-align:center;">밤 11시~자정은 다음 날로 보는 조자시 기준이에요.</p>' : ''}
+      <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:10px 0 4px;">
+        ${fp.count.map((n,i)=>`<span style="font-size:12px;border:1px solid var(--line);border-radius:8px;padding:5px 10px;background:#fff;">${ELEMENTS[i]}(${ELEMENTS_HANJA[i]}) ${n}</span>`).join('')}
+      </div>
+      <p class="sec-note" style="text-align:center;">태어난 절기 — ${ti.current.name}(${ti.current.hanja}) 지나 ${ti.next.name}까지 ${ti.next.daysLeft}일</p>
+      <div style="border-top:1px dashed var(--line);margin-top:14px;padding-top:14px;">
+        <p style="font-size:12.5px;color:var(--sub);margin:0 0 8px;"><b>대운</b> · ${du.forward?'순행':'역행'} · ${du.startAge}세 시작 (만 나이)</p>
+        <div class="river-wrap"><div class="river">${du.list.map(s=>`<div class="rseg" style="--c:var(--el-g2)"><span class="serif">${fmt.gz(s.stem,s.branch)}</span><i>${s.fromAge}–${s.toAge}</i></div>`).join('')}</div></div>
+      </div>
+      <p class="sec-note" style="margin-top:12px;">이 계산기는 아무것도 저장하지 않아요. 나의 하루로 이어 보려면 <a href="/saju" style="color:var(--brand-deep);font-weight:700;">내 사주 만들기</a>로 가세요.</p>
+    </div>`;
+};
+</script>
+</body>
+</html>

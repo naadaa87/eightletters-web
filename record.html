@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>기록 — 여덟글자</title>
+<meta name="description" content="감정 달력, 오늘 세 줄, 감정 배지, 월말 편지. 쌓인 것만 세고, 끊겨도 사라지지 않아요.">
+<link rel="canonical" href="https://eightletters-web.pages.dev/record">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/icons/favicon-64.png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#35714F">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="여덟글자">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:url" content="https://eightletters-web.pages.dev/record">
+<meta property="og:image" content="https://eightletters-web.pages.dev/assets/img/og-record.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="site-head"></header>
+
+<main class="wrap" id="main">
+  <h1 style="font-family:var(--serif);font-size:22px;font-weight:600;margin:26px 0 4px;">쌓이는 날들</h1>
+  <p class="sec-note" style="margin:0 0 6px;">감정 하나, 세 줄 하나면 충분해요 · 끊겨도 사라지지 않아요</p>
+
+  <!-- 오늘 남기기 -->
+  <section class="block" aria-label="오늘 남기기" id="todayCard">
+    <div class="sec-head"><h2>오늘 어떠셨어요</h2><span class="more">한 번 누르면 남아요 · 안 골라도 괜찮아요</span></div>
+    <div class="duo">
+      <div class="panel">
+        <img class="panel-illust" src="/assets/img/wx-cloud.webp" alt="" loading="lazy">
+        <h3>감정 날씨</h3>
+        <p class="p-sub" id="wxState"></p>
+        <div class="wx-row wx-big" id="wxRow"></div>
+        <p style="font-size:12px;color:var(--mute);margin:14px 0 0;">남긴 날씨는 달력과 나의 리듬에 바로 반영돼요. 지우고 싶으면 다른 날씨로 바꾸면 돼요.</p>
+      </div>
+      <div class="panel note-area">
+        <img class="panel-illust" src="/assets/img/journal.webp" alt="" loading="lazy">
+        <h3>오늘 세 줄</h3>
+        <p class="np" id="notePrompt"></p>
+        <textarea id="n1" rows="1" maxlength="80" placeholder="첫 줄"></textarea>
+        <div style="height:8px"></div>
+        <textarea id="n2" rows="1" maxlength="80" placeholder="둘째 줄"></textarea>
+        <div style="height:8px"></div>
+        <textarea id="n3" rows="1" maxlength="80" placeholder="셋째 줄"></textarea>
+        <div style="display:flex;gap:10px;align-items:center;margin-top:12px;">
+          <button class="btn btn-primary btn-sm" id="btnNote">세 줄 남기기</button>
+          <span style="font-size:12px;color:var(--mute);" id="noteState"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 감정 달력 -->
+  <section class="block" aria-label="감정 달력">
+    <div class="sec-head" style="margin-top:14px;">
+      <div class="month-nav">
+        <button id="mPrev" aria-label="이전 달">‹</button>
+        <h3 id="mTitle"></h3>
+        <button id="mNext" aria-label="다음 달">›</button>
+      </div>
+      <span class="more" id="mCount"></span>
+      <button class="tgl" id="tglIljin" aria-pressed="false"><span class="dot"></span>일진 겹쳐 보기</button>
+    </div>
+    <div class="panel">
+      <div class="cal-mini cal-full" id="calFull"></div>
+      <div class="cal-legend" id="calLegend"></div>
+    </div>
+    <p class="sec-note" id="welcomeBack" style="color:var(--el-text);margin-top:10px;" hidden></p>
+  </section>
+
+  <!-- 요약 + 배지 -->
+  <section class="block" aria-label="요약과 배지">
+    <div class="rec-grid">
+      <div class="panel">
+        <h3>이번 주 요약</h3>
+        <p class="p-sub">쌓인 것만 세요 · 연속은 세지 않아요</p>
+        <div id="weekBox"></div>
+      </div>
+      <div class="panel">
+        <h3>감정 배지</h3>
+        <p class="p-sub">끊겨도 사라지지 않아요</p>
+        <div class="badge-row" id="badgeRow"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 세 줄 서랍 (D-02) -->
+  <section class="block" aria-label="세 줄 서랍">
+    <div class="sec-head">
+      <h2>세 줄 서랍</h2>
+      <span style="display:flex;gap:14px;align-items:center;">
+        <button class="more linklike" id="btnExport" style="font-size:12.5px;color:var(--mute);">텍스트로 내보내기 ↓</button>
+        <button class="more linklike" id="btnBackup" style="font-size:12.5px;color:var(--mute);">전체 백업 ↓</button>
+        <label class="more linklike" style="font-size:12.5px;color:var(--mute);cursor:pointer;">가져오기 ↑<input type="file" id="fileImport" accept="application/json" hidden></label>
+      </span>
+    </div>
+    <div class="panel">
+      <input id="drawerSearch" type="search" placeholder="지난 세 줄에서 찾기" style="width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font:inherit;font-size:13.5px;background:#fff;margin-bottom:8px;">
+      <div id="bkNotice" hidden style="background:var(--brand-soft);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--sub);line-height:1.8;"></div>
+      <div id="drawerPin"></div>
+      <div id="drawerList"></div>
+    </div>
+  </section>
+
+  <!-- 월말 편지 -->
+  <section class="block" id="letter" aria-label="월말 편지">
+    <div class="sec-head"><h2>월말 편지</h2><span class="more">한 달의 기록이 한 통의 편지가 돼요</span></div>
+    <div class="letter" id="letterBox"></div>
+  </section>
+
+</main>
+
+<footer class="site-foot"></footer>
+<nav class="tabbar" aria-label="하단 메뉴"></nav>
+
+<script type="module">
+import { boot, store, getMoods, getNotes, earnedBadges, monthStats, toast,
+         exportAll, importAll, WEATHER, dateKey, STEMS } from '/assets/js/app.js';
+import { NOTE_PROMPT, NOTE_PROMPT_DEFAULT } from '/assets/js/content.js';
+import { dayPillarIndex, fmt } from '/assets/js/saju.js';
+
+const ctx = boot('record');
+const { t, mine } = ctx;
+const DOW = ['일','월','화','수','목','금','토'];
+const todayKey = dateKey(t.y, t.mo, t.d);
+
+/* ── 달력 ── */
+let vy = t.y, vm = t.mo;
+let showIljin = false;
+function renderCal(){
+  const moods = getMoods();
+  const first = new Date(vy, vm-1, 1).getDay();
+  const days = new Date(vy, vm, 0).getDate();
+  let html = DOW.map(d=>`<div class="dow">${d}</div>`).join('');
+  for (let i=0;i<first;i++) html += `<div class="cal-cell blank"></div>`;
+  for (let d=1; d<=days; d++){
+    const k = dateKey(vy,vm,d);
+    const m = moods[k];
+    const w = m && WEATHER.find(x=>x.key===m);
+    const isToday = vy===t.y && vm===t.mo && d===t.d;
+    const di = showIljin ? dayPillarIndex(vy, vm, d) : null;
+    const acted = store.get('actions', {})[k];
+    html += `<div class="cal-cell ${w?'filled':''} ${isToday?'today':''}" ${w?`style="background:${w.soft}"`:''} title="${m||''}">${d}${
+      di != null ? `<span style="position:absolute;left:6px;bottom:4px;font-size:9.5px;color:var(--sub);font-family:var(--serif);">${STEMS[di % 10]}</span>` : ''}${
+      acted ? `<span style="position:absolute;right:6px;bottom:4px;font-size:7px;color:var(--brand);">●</span>` : ''}</div>`;
+  }
+  document.getElementById('calFull').innerHTML = html;
+  document.getElementById('mTitle').textContent = `${vy}년 ${vm}월`;
+  const ms = monthStats(vy, vm);
+  document.getElementById('mCount').textContent = ms.count ? `${ms.count}일의 날씨가 모였어요` : '아직 비어 있어요';
+  const used = Object.keys(ms.byKind);
+  document.getElementById('calLegend').innerHTML = WEATHER
+    .filter(w=>used.includes(w.key))
+    .map(w=>`<span><i style="background:${w.color}"></i>${w.key} ${ms.byKind[w.key]}</span>`).join('') ||
+    `<span style="color:var(--mute)">빈 칸은 비워 두셔도 괜찮아요</span>`;
+}
+{
+  const tg = document.getElementById('tglIljin');
+  tg.onclick = () => { showIljin = !showIljin; tg.setAttribute('aria-pressed', showIljin); renderCal(); };
+}
+
+/* ── 이어 온 날 (D-04): 나무라지 않는 환영 ── */
+(function(){
+  const dates = [...new Set([...Object.keys(getMoods()), ...Object.keys(getNotes())])].sort();
+  if (!dates.length) return;
+  const last = dates[dates.length - 1];
+  if (last >= todayKey) return;
+  const gap = Math.round((new Date(todayKey) - new Date(last)) / 86400000);
+  if (gap >= 7) {
+    const [, lm, ld] = last.split('-').map(Number);
+    const el = document.getElementById('welcomeBack');
+    el.hidden = false;
+    el.textContent = `오랜만이에요. 마지막으로 남기신 게 ${lm}월 ${ld}일이었어요. 오늘부터 다시 이어지면 돼요.`;
+  }
+})();
+
+/* ── 세 줄 서랍 (D-02) ── */
+function drawerRow(n){
+  const [y, m, d] = n.date.split('-').map(Number);
+  const di = dayPillarIndex(y, m, d);
+  const wd = WEATHER.find(x => x.key === getMoods()[n.date]);
+  return `<div style="padding:13px 2px;border-bottom:1px dashed var(--line);">
+    <div style="display:flex;gap:9px;align-items:baseline;font-size:11.5px;color:var(--mute);margin-bottom:5px;flex-wrap:wrap;">
+      <b style="color:var(--sub);">${y}. ${m}. ${d}.</b>
+      <span class="serif">${fmt.gz(di % 10, di % 12)}일</span>
+      ${wd ? `<span><i style="display:inline-block;width:8px;height:8px;border-radius:3px;background:${wd.color};margin-right:3px;"></i>${wd.key}</span>` : ''}
+    </div>
+    ${(n.lines || []).filter(Boolean).map(l => `<p style="font-size:13.5px;margin:2px 0;line-height:1.7;">${l}</p>`).join('')}
+  </div>`;
+}
+function allNotes(){
+  return Object.entries(getNotes()).map(([date, lines]) => ({ date, lines }));
+}
+function renderDrawer(filter = ''){
+  const notes = allNotes().sort((a, b) => b.date.localeCompare(a.date));
+  const pin = document.getElementById('drawerPin');
+  const list = document.getElementById('drawerList');
+  const f = filter.trim();
+  let pinHtml = '';
+  if (!f && notes.length) {
+    const ago = m => { const dt = new Date(t.y, t.mo - 1 - m, t.d); return dateKey(dt.getFullYear(), dt.getMonth() + 1, dt.getDate()); };
+    const hit = notes.find(n => n.date === ago(12)) || notes.find(n => n.date === ago(6));
+    if (hit) pinHtml = `<div style="background:#FAFAF6;border:1px solid var(--line);border-radius:12px;padding:2px 14px 4px;margin-bottom:12px;">
+      <p style="font-size:11px;color:var(--el-text);margin:10px 0 0;">${hit.date === ago(12) ? '1년' : '6개월'} 전 오늘의 당신</p>${drawerRow(hit)}</div>`;
+  }
+  pin.innerHTML = pinHtml;
+  if (!notes.length) {
+    list.innerHTML = `<div style="text-align:center;padding:10px 0 4px;">
+      <img src="/assets/img/journal.webp" alt="" width="120" height="90" style="width:120px;border-radius:12px;opacity:.9;">
+      <p style="font-size:13.5px;color:var(--sub);margin:12px 0 2px;">오늘 세 줄을 쓰면, 1년 뒤 오늘 이 자리에서 다시 만나요.</p>
+      <p style="font-size:11.5px;color:var(--mute);margin:2px 0 10px;">지금까지 0일</p>
+      <a class="btn btn-soft btn-sm" href="#todayCard">오늘 세 줄 쓰러 가기</a>
+    </div>`;
+    return;
+  }
+  const match = f ? notes.filter(n => (n.lines || []).some(l => l && l.includes(f))) : notes;
+  list.innerHTML = match.length
+    ? match.slice(0, 30).map(drawerRow).join('')
+    : `<p style="font-size:13px;color:var(--mute);margin:4px 0 2px;">"${f}"가 담긴 세 줄은 아직 없어요.</p>`;
+}
+renderDrawer();
+/* 30일 이상 기록자 백업 안내 · 1회 (진단 B-14) */
+(function(){
+  const days = new Set([...Object.keys(getMoods()), ...Object.keys(getNotes())]).size;
+  if (days >= 30 && !store.get('bkNoticed', false)) {
+    const el = document.getElementById('bkNotice');
+    el.hidden = false;
+    el.innerHTML = `기록이 서른 날을 넘었어요. 브라우저를 정리하면 기록도 함께 사라져요.
+      <button class="linklike" id="bkNow" style="color:var(--brand-deep);font-weight:700;">지금 파일로 받아 두기</button>
+      <button class="linklike" id="bkLater" style="color:var(--mute);margin-left:8px;">다음에요</button>`;
+    document.getElementById('bkNow').onclick = () => { exportAll(); store.set('bkNoticed', true); el.hidden = true; };
+    document.getElementById('bkLater').onclick = () => { store.set('bkNoticed', true); el.hidden = true; };
+  }
+})();
+document.getElementById('drawerSearch').oninput = e => renderDrawer(e.target.value);
+document.getElementById('btnBackup').onclick = () => exportAll();
+document.getElementById('fileImport').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { const n = await importAll(f); toast(`${n}가지 기록을 되살렸어요`); setTimeout(()=>location.reload(), 700); }
+  catch { toast('파일 형식이 달라요 · 여덟글자 백업 파일인지 확인해 주세요'); }
+};
+document.getElementById('btnExport').onclick = () => {
+  const notes = allNotes().sort((a, b) => a.date.localeCompare(b.date));
+  if (!notes.length) { toast('아직 내보낼 기록이 없어요'); return; }
+  const moods = getMoods();
+  const txt = notes.map(n => `${n.date}${moods[n.date] ? ' · ' + moods[n.date] : ''}\n${(n.lines || []).filter(Boolean).join('\n')}`).join('\n\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff' + txt], { type: 'text/plain;charset=utf-8' }));
+  a.download = '여덟글자_세줄서랍.txt'; a.click(); URL.revokeObjectURL(a.href);
+  toast('세 줄을 내보냈어요 · 기록은 당신 것이에요');
+};
+
+document.getElementById('mPrev').onclick = ()=>{ vm--; if(vm<1){vm=12;vy--;} renderCal(); renderLetter(); };
+document.getElementById('mNext').onclick = ()=>{ vm++; if(vm>12){vm=1;vy++;} renderCal(); renderLetter(); };
+renderCal();
+
+/* ── 감정 날씨 ── */
+function renderWx(){
+  const cur = getMoods()[todayKey];
+  document.getElementById('wxState').textContent = cur ? `오늘은 ${cur}으로 남겼어요 · 바꿔도 돼요` : `${t.mo}월 ${t.d}일 · ${t.gzKr}일`;
+  document.getElementById('wxRow').innerHTML = WEATHER.map(w =>
+    `<button class="wx ${cur===w.key?'on':''}" data-k="${w.key}" aria-pressed="${cur===w.key}">
+      <i style="background:${w.color}"></i><span>${w.key}</span></button>`).join('');
+  document.querySelectorAll('#wxRow .wx').forEach(b => b.onclick = () => {
+    const m = getMoods(); m[todayKey] = b.dataset.k; store.set('moods', m);
+    renderWx(); renderCal(); renderWeek(); renderBadges(); renderLetter(); toast('조용히 남겼습니다');
+  });
+}
+renderWx();
+
+/* ── 세 줄 ── */
+const prompt = mine ? NOTE_PROMPT[mine.rel] : NOTE_PROMPT_DEFAULT[t.d % 3];
+document.getElementById('notePrompt').innerHTML = mine
+  ? `<b>${prompt}</b><br><span style="font-size:11.5px;color:var(--mute)">오늘 일진(${t.gz} · ${mine.rel})에서 나온 질문이에요</span>`
+  : `<b>${prompt}</b><br><span style="font-size:11.5px;color:var(--mute)"><a href="/saju" style="text-decoration:underline">여덟 글자</a>가 있으면 오늘 일진에 맞는 질문이 나와요</span>`;
+const saved = getNotes()[todayKey];
+if (saved) { ['n1','n2','n3'].forEach((id,i)=>document.getElementById(id).value = saved[i]||''); }
+function noteState(){ document.getElementById('noteState').textContent = getNotes()[todayKey] ? '오늘의 세 줄이 남아 있어요' : ''; }
+noteState();
+document.getElementById('btnNote').onclick = () => {
+  const lines = ['n1','n2','n3'].map(id=>document.getElementById(id).value.trim());
+  if (!lines.some(Boolean)) { toast('한 줄이면 충분해요'); return; }
+  const n = getNotes(); n[todayKey] = lines; store.set('notes', n);
+  noteState(); renderBadges(); toast('세 줄을 남겼어요');
+};
+
+/* ── 주간 요약 ── */
+function renderWeek(){
+  const moods = getMoods(), notes = getNotes();
+  const start = new Date(t.y, t.mo-1, t.d - t.dow);
+  let cnt=0, ncnt=0; const kinds={};
+  const strip = [];
+  for(let i=0;i<7;i++){
+    const d = new Date(start); d.setDate(start.getDate()+i);
+    const k = dateKey(d.getFullYear(), d.getMonth()+1, d.getDate());
+    const m = moods[k];
+    if(m){cnt++; kinds[m]=(kinds[m]||0)+1;}
+    if(notes[k]) ncnt++;
+    const w = m && WEATHER.find(x=>x.key===m);
+    strip.push(`<div style="flex:1;text-align:center;">
+      <div style="height:34px;border-radius:9px;${w?`background:${w.soft}`:`border:1px dashed var(--line)`};"></div>
+      <div style="font-size:10px;color:var(--mute);margin-top:4px;">${DOW[d.getDay()]}</div></div>`);
+  }
+  const top = Object.entries(kinds).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('weekBox').innerHTML = `
+    <div style="display:flex;gap:6px;margin-bottom:14px;">${strip.join('')}</div>
+    <div class="summary-line">${cnt
+      ? `이번 주 <b>${cnt}일</b>의 날씨 · 세 줄 <b>${ncnt}편</b> · <b>${top[0]}</b>이 가장 많았어요.`
+      : `아직 비어 있어요. 오늘 하나면 충분히 시작돼요.`}</div>`;
+}
+renderWeek();
+
+/* ── 배지 ── */
+const BADGE_ICON = {
+  seed:'<circle cx="12" cy="15" r="4.5"/><path d="M12 10.5V5m0 0c2 .5 3.5 2 4 4-2 .4-3.4-.2-4-4z"/>',
+  sprout:'<path d="M12 20v-8m0 0C10 8 7 7 4.5 7.5 5 10.5 8 12.5 12 12zm0 0c1.5-3 4-4 6.5-3.5-.4 2.8-3 4.6-6.5 3.5z"/>',
+  stem:'<path d="M12 20V6m0 5c-2.5-.5-4-2-4.5-4.5C10 6.2 11.6 7.6 12 11zm0 4c2.5-.5 4-2 4.5-4.5C14 10.2 12.4 11.6 12 15z"/>',
+  tree:'<path d="M12 20v-5m0 0c-4 .3-6.5-2-7-5.5 4-.4 6.5 1.8 7 5.5zm0 0c4 .3 6.5-2 7-5.5-4-.4-6.5 1.8-7 5.5zM12 9c-1.8-.5-3-1.8-3.3-3.8C10.5 5.4 11.7 6.6 12 9z"/>',
+  forest:'<path d="M7 20v-4m5 4v-6m5 6v-4M7 16c-2.5.2-4-1.2-4.4-3.4C5 12.4 6.6 13.6 7 16zm5-2c-3 .2-5-1.6-5.5-4.2C9.5 9.6 11.5 11.2 12 14zm5 2c2.5.2 4-1.2 4.4-3.4C19 12.4 17.4 13.6 17 16z"/>',
+  ink:'<path d="M6 4h9l3 3v13H6z"/><path d="M9 11h6M9 14.5h6"/>',
+  pages:'<path d="M5 5h9l3 3v11H5z"/><path d="M8 5v14M11 10h4M11 13h4"/>',
+  moon:'<path d="M19 13.5A7.5 7.5 0 1 1 10.5 5 6 6 0 0 0 19 13.5z"/>'
+};
+function renderBadges(){
+  document.getElementById('badgeRow').innerHTML = earnedBadges().map(b=>`
+    <div class="badge ${b.on?'':'off'}">
+      <div class="bd-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${BADGE_ICON[b.key]}</svg></div>
+      <b>${b.name}</b><span>${b.need}</span></div>`).join('');
+}
+renderBadges();
+
+/* ── 월말 편지 ── */
+function letterFor(y, mo){
+  const ms = monthStats(y, mo);
+  const lastDay = new Date(y, mo, 0).getDate();
+  const isPast = y < t.y || (y === t.y && mo < t.mo);
+  const isCurrent = y === t.y && mo === t.mo;
+  if (!ms.count) return { title:`${mo}월의 편지`, state: isCurrent?'쓰는 중':'', paras:[
+    isCurrent ? `${mo}월의 이야기는 아직 첫 줄을 기다리고 있어요. 오늘의 날씨 하나면 충분히 시작돼요.`
+              : `${y}년 ${mo}월에는 남겨진 기록이 없어요. 비어 있는 달도 그 나름의 이야기예요.`],
+    foot: isCurrent ? `이 편지는 ${mo}월 ${lastDay}일에 완성돼요` : null };
+  const dows = ms.byDow.map((c,i)=>[c,i]).sort((a,b)=>b[0]-a[0]);
+  const paras = [];
+  paras.push(`${mo}월에는 ${isCurrent?'지금까지 ':''}${ms.count}번의 날씨를 남기셨어요. 가장 많았던 날씨는 ${ms.top[0]}이었어요.`);
+  if (dows[0][0] >= 2 && ms.count >= 4)
+    paras.push(`그중 ${dows[0][0]}번이 ${DOW[dows[0][1]]}요일에 몰려 있었어요. 한 주의 그 자리가 유난히 짙었던 달이에요.`);
+  if (mine) paras.push(`${STEMS[mine.dayStem]} 일간에게 이런 달은 ${ms.top[0]==='맑음'||ms.top[0]==='갬' ? '바깥으로 뻗기 좋은' : '안을 돌보기 좋은'} 시간이기도 해요.`);
+  paras.push(`다가오는 절기는 ${t.term.next.name}(${t.term.next.hanja}), ${t.term.next.mo}월 ${t.term.next.d}일이에요. 계절이 한 번 더 깊어지기 전에, 이번 달 가장 많이 남긴 날씨를 한 번 안아 주고 가요.`);
+  return { title:`${mo}월의 편지`, state: isCurrent?'쓰는 중':'', paras,
+    foot: isCurrent ? `이 편지는 ${mo}월 ${lastDay}일에 완성돼요 · 구독하면 십성 교차 분석과 다음 달 리듬까지 이어져요`
+                    : `구독하면 일기 속 낱말 분석과 다음 달 리듬까지 이어져요` };
+}
+function renderLetter(){
+  const L = letterFor(vy, vm);
+  document.getElementById('letterBox').innerHTML = `
+    <div class="letter-band"><img src="/assets/img/letter-moon.webp" alt="" loading="lazy"></div>
+    <h3>${L.title} ${L.state?`<span style="font-size:12px;color:var(--mute);font-family:var(--sans);font-weight:400;">${L.state}</span>`:''}</h3>
+    <div class="l-sub">받는 사람 — 한 달을 지나온 당신</div>
+    ${L.paras.map(p=>`<p>${p}</p>`).join('')}
+    ${L.foot?`<div class="fold-note">${L.foot}</div>`:''}`;
+  if (!L.state && monthStats(vy,vm).count) store.set('letterRead', 1);
+}
+renderLetter();
+</script>
+</body>
+</html>

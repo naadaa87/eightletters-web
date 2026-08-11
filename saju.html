@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>내 사주 — 여덟글자</title>
+<meta name="description" content="생년월일로 네 기둥 여덟 글자를 만듭니다. 점수 없이, 오행의 자리와 오늘의 결을 읽어요.">
+<link rel="canonical" href="https://eightletters-web.pages.dev/saju">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/icons/favicon-64.png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#35714F">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="여덟글자">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:url" content="https://eightletters-web.pages.dev/saju">
+<meta property="og:image" content="https://eightletters-web.pages.dev/assets/img/og-saju.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="site-head"></header>
+
+<main class="wrap" id="main">
+
+  <!-- 입력 -->
+  <section class="block" id="formSec" hidden>
+    <div class="form-banner">
+      <img src="/assets/img/valley.webp" alt="">
+      <div class="fb-txt"><h1>당신의 여덟 글자를 만들어 드릴게요</h1></div>
+    </div>
+    <p style="text-align:center;color:var(--sub);font-size:14.5px;margin:-6px auto 24px;max-width:520px;">
+      생년월일이면 충분해요. 태어난 시간은 몰라도 괜찮아요.<br>입력한 정보는 이 기기에만 저장돼요.</p>
+    <div class="form-card panel">
+      <div class="f-field"><label for="fY">생년월일</label>
+        <input id="fY" type="number" inputmode="numeric" placeholder="1988" min="1900" max="2100" style="max-width:86px;">
+        <span style="color:var(--mute)">년</span>
+        <input id="fM" type="number" inputmode="numeric" placeholder="3" min="1" max="12" style="max-width:56px;">
+        <span style="color:var(--mute)">월</span>
+        <input id="fD" type="number" inputmode="numeric" placeholder="26" min="1" max="31" style="max-width:56px;">
+        <span style="color:var(--mute)">일</span>
+      </div>
+      <div class="f-field"><label for="fH">태어난 시간</label>
+        <select id="fH">
+          <option value="">모름 · 시주 없이 볼게요</option>
+        </select>
+      </div>
+      <div class="segset" role="radiogroup" aria-label="성별">
+        <button type="button" id="gF" class="on">여성</button>
+        <button type="button" id="gM">남성</button>
+      </div>
+      <button class="btn btn-primary" id="btnMake" style="width:100%;">여덟 글자 만들기</button>
+      <p style="text-align:center;font-size:12px;color:var(--mute);margin:12px 0 0;line-height:1.8;">
+        무료예요 · 절기는 태양 황경으로 직접 계산해요<br>생년월일은 서버로 보내지 않아요</p>
+    </div>
+  </section>
+
+  <!-- 결과 -->
+  <section class="block" id="resultSec" hidden>
+    <div class="sec-head" style="margin-top:26px;">
+      <h2 id="resTitle">나의 여덟 글자</h2>
+      <button class="more" id="btnRedo" style="background:none;border:0;color:var(--sub);cursor:pointer;">다시 만들기</button>
+    </div>
+    <p class="sec-note" id="resBirth"></p>
+
+    <div class="pillars" id="pillars"></div>
+    <p style="text-align:center;font-size:12px;color:var(--mute);margin:4px 0 0;">년 → 월 → 일 → 시 순서로 하나씩 올라와요</p>
+
+    <div class="duo" style="margin-top:22px;">
+      <div class="panel">
+        <h3 id="defTitle" class="serif" style="font-size:19px;"></h3>
+        <p class="p-sub" id="defTag"></p>
+        <p style="font-size:15px;line-height:1.9;margin:0;" id="defLine"></p>
+      </div>
+      <div class="panel">
+        <h3>오행 밸런스</h3>
+        <p class="p-sub">숫자도 점수도 없어요 · 있는 만큼 놓고, 없는 자리는 비워 둬요</p>
+        <div class="bal-rows" id="balRows"></div>
+      </div>
+    </div>
+
+    <div class="duo" style="margin-top:16px;">
+      <div class="panel" id="emptyPanel"></div>
+      <div class="panel" id="todayPanel"></div>
+    </div>
+
+    <!-- C-02 쓰는 법과 안 쓸 때 -->
+    <section class="block" id="deep" style="margin-top:20px;">
+      <div class="sec-head"><h2>쓰는 법과 안 쓸 때</h2><span class="more">강약은 좋고 나쁨이 아니라 사용법이에요 · 4,900원</span></div>
+      <div class="panel">
+        <div id="c02Free"></div>
+        <div class="fold" style="margin-top:16px;">
+          <div class="fold-titles" id="c02Locked"></div>
+          <div class="fold-cta">
+            <button class="btn btn-ghost btn-sm pay-btn">이어서 읽기 · 4,900원</button>
+            <span class="fold-note">가장 강한 하나까지 읽으셨어요 · 여기부터 아홉 자리가 더 있어요 · 광고는 없어요</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- C-05 몸이 보내는 신호 -->
+    <section class="block">
+      <div class="sec-head"><h2>몸이 보내는 신호</h2><span class="more">진단은 무료 · 보충 방향 상세 2,900원</span></div>
+      <div class="panel">
+        <p class="sec-note" style="margin:0 0 12px;">의학적 진단이 아니에요. 몸에 이상이 느껴지면 병원에서 확인하세요.</p>
+        <div id="c05Body"></div>
+        <p class="sec-note" style="margin:14px 0 0;">의학적 진단이 아니에요 · 생활 습관 수준에서만 말해요</p>
+      </div>
+    </section>
+
+    <div class="panel share-flex" style="margin-top:16px;">
+      <div class="share-prev"><canvas id="myCanvas" width="1080" height="1350" aria-label="내 여덟 글자 카드"></canvas></div>
+      <div class="share-info">
+        <h3 class="serif" style="margin:0 0 6px;font-size:18px;">여덟 글자 카드</h3>
+        <p>이름은 들어가지 않아요. 여덟 글자와 한 줄 정의만 담아 저장해요.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary" id="btnSaveCard">카드 저장하기</button>
+          <button class="btn btn-ghost" id="btnCardLink">링크로 공유</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-foot"></footer>
+<nav class="tabbar" aria-label="하단 메뉴"></nav>
+
+<script type="module">
+import { boot, store, getProfile, toast, downloadCanvas, copyShareLink, wirePayButtons, STEMS } from '/assets/js/app.js';
+import { fourPillars, tenGod, TEN_GODS, fmt, STEMS_KR, BRANCHES, BRANCHES_KR, ELEMENTS, ELEMENTS_HANJA } from '/assets/js/saju.js';
+import { STEM_DEF, EMPTY_EL_TIP, TEN_GOD_DAY, EL_THEME } from '/assets/js/content.js';
+import { C02, C05_OVER, C05_LACK } from '/assets/js/content2.js';
+import { typeName, branchSeason, SEASON4 } from '/assets/js/content3.js';
+
+const ctx = boot('saju');
+const { t, theme } = ctx;
+const EL_DOT = ['#2E7D5B','#C4574A','#C9A227','#9AA3AB','#3F6A9E'];
+const STEM_EL_IDX = [0,0,1,1,2,2,3,3,4,4];
+const BR_EL = {子:4,丑:2,寅:0,卯:0,辰:2,巳:1,午:1,未:2,申:3,酉:3,戌:2,亥:4};
+
+/* 시간 셀렉트 */
+const hourSel = document.getElementById('fH');
+const HOURS = [['23','밤 11시 · 자시'],['1','새벽 1시 · 축시'],['3','새벽 3시 · 인시'],['5','새벽 5시 · 묘시'],
+  ['7','아침 7시 · 진시'],['9','오전 9시 · 사시'],['11','낮 11시 · 오시'],['13','오후 1시 · 미시'],
+  ['15','오후 3시 · 신시'],['17','오후 5시 · 유시'],['19','저녁 7시 · 술시'],['21','밤 9시 · 해시']];
+for (const [v,l] of HOURS) hourSel.insertAdjacentHTML('beforeend', `<option value="${v}">${l} 무렵</option>`);
+
+let gender = 'F';
+document.getElementById('gF').onclick = e => { gender='F'; e.target.classList.add('on'); document.getElementById('gM').classList.remove('on'); };
+document.getElementById('gM').onclick = e => { gender='M'; e.target.classList.add('on'); document.getElementById('gF').classList.remove('on'); };
+
+function show(which){
+  document.getElementById('formSec').hidden = which !== 'form';
+  document.getElementById('resultSec').hidden = which !== 'result';
+}
+
+document.getElementById('btnMake').onclick = () => {
+  const y = +document.getElementById('fY').value, mo = +document.getElementById('fM').value, d = +document.getElementById('fD').value;
+  if (!y || !mo || !d || mo < 1 || mo > 12 || d < 1 || d > 31) { toast('생년월일을 확인해 주세요'); return; }
+  const hv = hourSel.value;
+  store.set('profile', { y, mo, d, h: hv === '' ? null : +hv, gender });
+  render(); show('result');
+  window.scrollTo({ top: 0 });
+};
+document.getElementById('btnRedo').onclick = () => {
+  if (!confirm('저장된 사주를 지우고 다시 입력할까요? 감정 기록과 세 줄은 그대로 남아요.')) return;
+  const p = getProfile();
+  if (p) { document.getElementById('fY').value = p.y; document.getElementById('fM').value = p.mo; document.getElementById('fD').value = p.d;
+    hourSel.value = p.h == null ? '' : String([23,1,3,5,7,9,11,13,15,17,19,21][Math.floor(((p.h + 1) % 24) / 2)]); }
+  show('form');
+};
+
+function pillarCell(label, p){
+  if (!p) return `<div class="pillar ghost"><div class="pl">${label}</div>
+    <div class="han" style="color:var(--mute)">－<br>－</div><div class="kr">시간 모름</div>
+    <div class="eldot" style="background:transparent;border:1.5px dashed var(--mute)"></div></div>`;
+  const el = STEM_EL_IDX[p.stem];
+  return `<div class="pillar"><div class="pl">${label}</div>
+    <div class="han">${STEMS[p.stem]}<br>${BRANCHES[p.branch]}</div>
+    <div class="kr">${STEMS_KR[p.stem]}${BRANCHES_KR[p.branch]}</div>
+    <div class="eldot" style="background:${EL_DOT[el]}"></div></div>`;
+}
+
+let myCard = null;
+function render(){
+  const p = getProfile();
+  const fp = fourPillars(p.y, p.mo, p.d, p.h ?? null);
+  const P = fp.pillars;
+  const dayStem = P.day.stem;
+  const def = STEM_DEF[dayStem];
+
+  const hTxt = p.h == null ? '시간 모름' : `${p.h < 12 ? '오전' : '오후'} ${p.h % 12 === 0 ? 12 : p.h % 12}시`;
+  document.getElementById('resBirth').textContent =
+    `${p.y}년 ${p.mo}월 ${p.d}일 · ${hTxt} · ${p.gender === 'F' ? '여성' : '남성'} — 절기 기준으로 계산했어요`;
+  const notice = [];
+  if (fp.dst) notice.push('이 시기에는 서머타임으로 시계를 한 시간 앞당겨 썼어요. 입력하신 시계 시각에서 한 시간을 되돌려 계산했습니다.');
+  if (p.h === 23) notice.push('밤 11시부터 자정 사이는 날짜를 어디로 볼지 학파마다 갈려요. 여덟글자는 다음 날로 보는 조자시 기준을 씁니다.');
+  const nEl = document.getElementById('birthNotice');
+  if (nEl) { nEl.textContent = notice.join(' '); nEl.hidden = !notice.length; }
+
+  document.getElementById('pillars').innerHTML =
+    pillarCell('시', P.hour) + pillarCell('일', P.day) + pillarCell('월', P.month) + pillarCell('년', P.year);
+
+  document.getElementById('defTitle').textContent = `당신은 ${STEMS[dayStem]}${ELEMENTS_HANJA[STEM_EL_IDX[dayStem]]} 일간이에요`;
+  const season = branchSeason(P.month.branch);
+  document.getElementById('defTag').innerHTML = `40가지 유형 중 「${typeName(dayStem, season)}」 · <a href="/type" style="color:inherit;text-decoration:underline;text-underline-offset:2px;">마흔 유형 전부 보기</a>`;
+  document.getElementById('defLine').textContent = def.line;
+
+  const total = fp.count.reduce((a,b)=>a+b,0);
+  document.getElementById('balRows').innerHTML = ELEMENTS.map((nm,i)=>{
+    const c = fp.count[i];
+    const sq = c ? Array.from({length:c}).map(()=>`<span class="bal-sq" style="background:${EL_THEME[i].pastelDeep}"></span>`).join('')
+                 : `<span class="bal-sq empty"></span>`;
+    return `<div class="bal-row"><img class="elc" src="/assets/img/elc-${i}.webp" alt="">
+      <span class="nm">${nm}<b>${ELEMENTS_HANJA[i]}</b></span>${sq}
+      <span class="cnt">${c ? '' : '비어 있음'}</span></div>`;
+  }).join('');
+
+  const empties = ELEMENTS.map((_,i)=>i).filter(i=>fp.count[i]===0);
+  const ep = document.getElementById('emptyPanel');
+  if (empties.length){
+    const i = empties[0];
+    ep.innerHTML = `<img class="panel-illust" src="/assets/img/charm.webp" alt="" loading="lazy">
+      <h3>비어 있는 자리</h3>
+      <p class="p-sub">비어 있다는 건 나쁜 게 아니라 채울 여지가 있다는 뜻이에요</p>
+      <p style="font-size:15px;line-height:1.9;margin:0 0 12px;">
+        ${empties.map(x=>`${ELEMENTS[x]}(${ELEMENTS_HANJA[x]})`).join('과 ')}의 자리가 비어 있어요.
+        ${EMPTY_EL_TIP[i]}</p>
+      <a class="btn btn-tint-y btn-sm" href="/charm">이 자리를 보완하는 부적 보기</a>`;
+  } else {
+    ep.innerHTML = `<h3>다섯 기운의 배열</h3>
+      <p class="p-sub">비어 있는 자리 없이 고루 놓여 있어요</p>
+      <p style="font-size:15px;line-height:1.9;margin:0;">치우침이 크지 않아 흐름을 타기 좋아요. 오늘 가장 편했던 일 하나를 내일도 이어서 해 보세요.</p>`;
+  }
+
+  const rel = TEN_GODS[tenGod(dayStem, t.stem)];
+  const rd = TEN_GOD_DAY[rel];
+  document.getElementById('todayPanel').innerHTML = `
+    <h3>오늘의 결</h3>
+    <p class="p-sub">${t.y}년 ${t.mo}월 ${t.d}일 · ${t.gzKr}일</p>
+    <div class="gyeol-ten"><span class="gz">${t.gz}</span><span class="rel">${rel}</span></div>
+    <p class="gyeol-line" style="font-size:14.5px;">${rd.line}</p>
+    <p class="gyeol-action">${rd.action}</p>
+    <span class="tag-basis">일간 ${STEMS[dayStem]} · 오늘 ${t.gz} · ${rel}</span>`;
+
+  /* C-02 십성 세기: 일간 제외 일곱 글자 (천간 + 지지 본기) */
+  const BR_MAIN = {子:9,丑:5,寅:0,卯:1,辰:4,巳:2,午:3,未:5,申:6,酉:7,戌:4,亥:8};
+  const tgCount = Array(10).fill(0);
+  for (const key of ['year','month','day','hour']) {
+    const pl = P[key]; if (!pl) continue;
+    if (!(key === 'day')) tgCount[tenGod(dayStem, pl.stem)]++;
+    tgCount[tenGod(dayStem, BR_MAIN[BRANCHES[pl.branch]])]++;
+  }
+  const strongest = tgCount.indexOf(Math.max(...tgCount));
+  document.getElementById('c02Free').innerHTML = `
+    <div class="gyeol-ten"><span class="rel">${TEN_GODS[strongest]}</span>
+      <span style="font-size:12px;color:var(--mute);">여덟 글자 안에 ${tgCount[strongest]}자리 — 당신에게 가장 강한 힘이에요</span></div>
+    <p style="font-size:14.5px;line-height:1.9;margin:8px 0 6px;"><b>쓸 때 —</b> ${C02[strongest][0]}</p>
+    <p style="font-size:14.5px;line-height:1.9;margin:0;"><b>안 쓸 때 —</b> ${C02[strongest][1]}</p>`;
+  document.getElementById('c02Locked').innerHTML = TEN_GODS
+    .map((nm, i) => ({ nm, i })).filter(x => x.i !== strongest && tgCount[x.i] > 0)
+    .map(({ nm, i }) => `<div class="fold-row"><b>${nm} · ${tgCount[i]}자리</b><span>${C02[i][0].slice(0, 12)}…</span></div>`).join('')
+    || `<div class="fold-row"><b>나머지 아홉 십성</b><span>배합 전체를 사용법으로 풀어 드려요</span></div>`;
+
+  /* C-05 몸의 신호 */
+  const overs = ELEMENTS.map((_,i)=>i).filter(i => fp.count[i] >= 3);
+  const lacks = ELEMENTS.map((_,i)=>i).filter(i => fp.count[i] === 0);
+  let c05 = '';
+  if (overs.length) c05 += overs.map(i => `<p style="font-size:14.5px;line-height:1.9;margin:0 0 8px;">${C05_OVER[i]}</p>`).join('');
+  if (lacks.length) {
+    const i = lacks[0], L = C05_LACK[i];
+    c05 += `<p style="font-size:14.5px;line-height:1.9;margin:0 0 8px;">${ELEMENTS[i]}(${ELEMENTS_HANJA[i]})의 자리가 비어 있어요. 이 자리는 색으로는 <b>${L[0]}</b>, 시간으로는 <b>${L[1]}</b>이 잘 맞아요.</p>
+    <div class="fold" style="margin-top:12px;">
+      <div class="fold-titles">
+        <div class="fold-row"><b>내 자리</b><span>${L[2].slice(0,8)}…</span></div>
+        <div class="fold-row"><b>채우는 활동</b><span>${L[3].slice(0,8)}…</span></div>
+        <div class="fold-row"><b>물건 셋</b><span>부족한 기운을 부르는 성질의 것들</span></div>
+      </div>
+      <div class="fold-cta">
+        <button class="btn btn-ghost btn-sm pay-btn">이어서 읽기 · 2,900원</button>
+        <span class="fold-note">진단까지는 무료예요 · 한 번 결제하면 계속 볼 수 있어요</span>
+      </div>
+    </div>`;
+  }
+  if (!overs.length && !lacks.length) c05 = `<p style="font-size:14.5px;line-height:1.9;margin:0;">다섯 기운이 크게 넘치지도 비지도 않아요. 몸의 리듬이 고른 편이라, 지금의 생활 습관을 그대로 이어 가면 돼요.</p>`;
+  document.getElementById('c05Body').innerHTML = c05;
+
+  myCard = { P, dayStem, def, fpCount: fp.count };
+  paintCard();
+  document.getElementById('btnCardLink').onclick = () => copyShareLink({
+    t:'saju',
+    p: [P.hour ? STEMS[P.hour.stem]+BRANCHES[P.hour.branch] : '－－',
+        STEMS[P.day.stem]+BRANCHES[P.day.branch],
+        STEMS[P.month.stem]+BRANCHES[P.month.branch],
+        STEMS[P.year.stem]+BRANCHES[P.year.branch]],
+    ds: dayStem, c: fp.count
+  });
+  wirePayButtons();
+}
+
+function paintCard(){
+  if (!myCard) return;
+  const cv = document.getElementById('myCanvas');
+  const W = 1080, H = 1350; cv.width = W; cv.height = H;
+  const x = cv.getContext('2d');
+  const g = x.createLinearGradient(0,0,W*.3,H);
+  g.addColorStop(0, theme.grad[0]); g.addColorStop(.6, theme.grad[2]); g.addColorStop(1,'#fff');
+  x.fillStyle = g; x.fillRect(0,0,W,H);
+  const serif = '"Noto Serif KR","Noto Serif CJK KR",serif';
+  const sans = '"Pretendard","Noto Sans KR","Noto Sans CJK KR",sans-serif';
+  x.fillStyle = 'rgba(46,45,41,.55)'; x.font = `400 30px ${sans}`;
+  x.fillText(`${t.y}. ${String(t.mo).padStart(2,'0')}. ${String(t.d).padStart(2,'0')}`, 84, 118);
+  const { P, def, fpCount } = myCard;
+  const gzLine = (p) => p ? STEMS[p.stem] + BRANCHES[p.branch] : '－－';
+  x.fillStyle = '#2E3B32'; x.font = `300 150px ${serif}`;
+  x.fillText(`${gzLine(P.hour)} ${gzLine(P.day)}`, 78, 330);
+  x.fillText(`${gzLine(P.month)} ${gzLine(P.year)}`, 78, 500);
+  x.fillStyle = 'rgba(46,45,41,.5)'; x.font = `400 30px ${sans}`;
+  const kr = p => p ? STEMS_KR[p.stem] + BRANCHES_KR[p.branch] : '';
+  x.fillText([P.hour,P.day,P.month,P.year].map(kr).filter(Boolean).join(' '), 84, 566);
+  x.strokeStyle = 'rgba(46,45,41,.15)'; x.lineWidth = 2;
+  x.beginPath(); x.moveTo(84, 640); x.lineTo(996, 640); x.stroke();
+  x.fillStyle = '#2E3B32'; x.font = `500 62px ${serif}`;
+  x.fillText(`「${def.type}」`, 84, 750);
+  x.fillStyle = '#4A554D'; x.font = `400 36px ${sans}`;
+  const words = def.line.split(' ');
+  let line = '', yy = 826;
+  for (const w of words){
+    if (x.measureText(line + w).width > 880){ x.fillText(line, 84, yy); yy += 58; line = w + ' '; }
+    else line += w + ' ';
+  }
+  x.fillText(line, 84, yy);
+  let bx = 84;
+  for (let i = 0; i < 5; i++){
+    const c = fpCount[i];
+    for (let j = 0; j < Math.max(c,1); j++){
+      x.beginPath(); x.roundRect(bx, 1060, 52, 52, 14);
+      if (c){ x.fillStyle = EL_THEME[i].pastelDeep; x.fill(); }
+      else { x.setLineDash([7,6]); x.strokeStyle = 'rgba(46,45,41,.35)'; x.stroke(); x.setLineDash([]); }
+      bx += 64;
+      if (!c) break;
+    }
+    bx += 14;
+  }
+  x.fillStyle = 'rgba(46,45,41,.45)'; x.font = `400 27px ${sans}`;
+  x.fillText('여덟글자 · eightletters-web.pages.dev', 84, 1270);
+}
+
+document.getElementById('btnSaveCard').onclick = () => {
+  paintCard();
+  downloadCanvas(document.getElementById('myCanvas'), '여덟글자_내사주카드.png');
+  toast('카드를 저장했어요');
+};
+
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ if(!document.getElementById('resultSec').hidden) paintCard(); });
+
+/* 초기 상태 */
+if (getProfile()) { render(); show('result'); } else show('form');
+</script>
+</body>
+</html>

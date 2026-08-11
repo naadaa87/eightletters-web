@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>지식 사전 — 여덟글자</title>
+<meta name="description" content="천간·지지·오행·십성·합충형파해까지, 사주 용어를 겁 없이 풀어 쓴 사전. 마흔다섯 항목.">
+<link rel="canonical" href="https://eightletters-web.pages.dev/dict">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/icons/favicon-64.png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#35714F">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="여덟글자">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="지식 사전 — 여덟글자">
+<meta property="og:description" content="천간·지지·오행·십성·합충형파해까지, 사주 용어를 겁 없이 풀어 쓴 사전. 마흔다섯 항목.">
+<meta property="og:url" content="https://eightletters-web.pages.dev/dict">
+<meta property="og:image" content="https://eightletters-web.pages.dev/assets/img/og-ilju.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="site-head"></header>
+
+<main class="wrap" id="main">
+  <section class="block" style="margin-top:26px;">
+    <div class="sec-head"><h2>지식 사전</h2><span class="more" id="dCount"></span></div>
+    <p style="font-size:14px;color:var(--sub);line-height:1.95;max-width:680px;margin:0 0 6px;">
+      명리 용어는 어렵게 태어난 말이 아니라 오래된 말일 뿐이에요. 여기 실린 풀이에는
+      겁주는 문장이 없어요. 나쁜 글자도, 피해야 할 관계도 없다는 게 이 사전의 관점이에요.</p>
+    <div class="dict-nav" id="dNav"></div>
+    <div class="dict-list" id="dList"></div>
+  </section>
+</main>
+
+<footer class="site-foot"></footer>
+<nav class="tabbar" aria-label="하단 메뉴"></nav>
+
+<script type="module">
+import { boot } from '/assets/js/app.js';
+import { DICT } from '/assets/js/content3.js';
+boot(null);
+const groups = ['전체', ...new Set(DICT.map(d => d.g))];
+let cur = '전체';
+function render(){
+  document.getElementById('dNav').innerHTML = groups.map(g =>
+    `<button class="pill ${g===cur?'on':''}" data-g="${g}">${g}</button>`).join('');
+  document.querySelectorAll('#dNav .pill').forEach(b => b.onclick = () => { cur = b.dataset.g; render(); });
+  const list = cur === '전체' ? DICT : DICT.filter(d => d.g === cur);
+  document.getElementById('dCount').textContent = `${list.length}항목`;
+  document.getElementById('dList').innerHTML = list.map(d =>
+    `<div class="dict-item" id="${d.t}"><b>${d.t}</b><span class="h">${d.h}</span><p>${d.d}</p></div>`).join('');
+  if (location.hash) document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView();
+}
+render();
+</script>
+</body>
+</html>

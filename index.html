@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>여덟글자 — 오늘의 색과 감정으로 읽는 하루</title>
+<meta name="description" content="매일 바뀌는 오늘의 색과 감정 기록으로, 사주와 함께 살아가는 자리. 점수도 흉일도 없이, 오늘 해볼 일 하나로 끝맺습니다.">
+<link rel="canonical" href="https://eightletters-web.pages.dev/">
+<meta property="og:title" content="여덟글자 — 오늘의 색">
+<meta property="og:description" content="매일 바뀌는 오늘의 색과 감정 기록. 오늘 어떤 기운이 드는지가 매일 아침 바뀌어 있어요.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/icons/favicon-64.png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#35714F">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="여덟글자">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:url" content="https://eightletters-web.pages.dev/">
+<meta property="og:image" content="https://eightletters-web.pages.dev/assets/img/og-home.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="preload" as="image" href="/assets/img/el-0.webp">
+<link rel="preload" as="image" href="/assets/img/el-1.webp">
+<link rel="preload" as="image" href="/assets/img/el-2.webp">
+<link rel="preload" as="image" href="/assets/img/el-3.webp">
+<link rel="preload" as="image" href="/assets/img/el-4.webp">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","name":"여덟글자","alternateName":"Yeodeol Geulja","url":"https://eightletters-web.pages.dev/","inLanguage":"ko","description":"점수도 등급도 없이, 오늘의 색과 감정으로 읽는 사주"}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="site-head"></header>
+
+<main class="wrap" id="main">
+
+  <!-- ═══ 오늘의 색 히어로 ═══ -->
+  <section class="hero" aria-label="오늘의 색">
+    <div class="hero-panel">
+      <div class="hero-body">
+        <span class="chip-today">오늘의 색 · <span id="chipEl"></span> <span class="gz" id="chipGz"></span></span>
+        <div class="hero-date" id="heroDate"></div>
+        <h1 class="hero-title" id="heroTitle"></h1>
+        <p class="hero-sub" id="heroSub"></p>
+        <p class="hero-action" id="heroAction"></p>
+        <div class="hero-tags" id="heroTags"></div>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#insights">오늘의 인사이트 보기 <span aria-hidden="true">→</span></a>
+          <button class="btn btn-ghost" id="btnShareTop">카드 저장</button>
+        </div>
+      </div>
+      <figure class="hero-card" style="margin:0;">
+        <img id="heroCardImg" alt="오늘의 색 카드">
+        <figcaption class="hc-cap" id="heroCardCap"></figcaption>
+      </figure>
+      <div class="hero-term" id="heroTerm"></div>
+    </div>
+  </section>
+
+  <!-- ═══ 오늘의 인사이트 ═══ -->
+  <section class="block" id="insights" aria-label="오늘의 인사이트">
+    <div class="sec-head"><h2>오늘의 인사이트</h2><span class="more">회원가입 없이 · 이 기기에만 저장돼요</span></div>
+    <div class="insight-grid">
+
+      <article class="icard icard-w">
+        <div class="ic-tag">감정 날씨</div>
+        <div class="ic-q">지금 내 마음 날씨는?</div>
+        <div class="wx-row" id="wxRow"></div>
+        <div class="wx-saved" id="wxSaved"></div>
+        <div class="mini-meter" id="miniMeter"></div>
+      
+        <a class="ic-link" href="/record">오늘 날씨 찍기 →</a>
+      </article>
+
+      <article class="icard icard-t">
+        <div class="ic-img"><img src="/assets/img/ins-type.webp" alt="" loading="lazy"></div>
+        <div class="ic-tag">둘의 날씨 <span style="font-size:9px;background:#B04B3F;color:#fff;border-radius:20px;padding:2px 7px;vertical-align:2px;">새 기능</span></div>
+        <div class="ic-q">저 사람과 나는 어떤 사이일까</div>
+        <div class="ic-main" id="typeName">점수 대신 기상도</div>
+        <div class="ic-sub" id="typeSub">상대 생일을 몰라도 링크로 초대할 수 있어요</div>
+        <a class="ic-link" href="/gunghap" id="typeLink">둘의 날씨 보기 →</a>
+      </article>
+
+      <article class="icard icard-r">
+        <div class="ic-img"><img src="/assets/img/ins-tarot.webp" alt="" loading="lazy"></div>
+        <div class="ic-tag">타로 한 장</div>
+        <div class="ic-q">오늘의 메시지</div>
+        <div class="ic-main" id="tarotName"></div>
+        <div class="ic-sub" id="tarotLine"></div>
+        <a class="ic-link" href="/tarot">카드 보기 →</a>
+      </article>
+
+      <article class="icard icard-d">
+        <div class="ic-img"><img src="/assets/img/ins-report.webp" alt="" loading="lazy"></div>
+        <div class="ic-tag">더 깊이 보기</div>
+        <div class="ic-q">사주 분석 &amp; 리포트</div>
+        <div class="ic-main">맞춤 리포트</div>
+        <div class="ic-sub">첫 문단은 결제 없이 열려요</div>
+        <a class="ic-link" href="/report">맞춤 리포트 보기 →</a>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ═══ 나의 리듬 + 오늘의 결 ═══ -->
+  <section class="block" aria-label="나의 리듬">
+    <div class="sec-head"><h2>나의 리듬</h2><span class="more" id="rhythmBasisTop"></span></div>
+    <div class="duo">
+      <div class="panel" id="rhythmPanel"></div>
+      <div class="panel" id="gyeolPanel"></div>
+    </div>
+  </section>
+
+  <!-- ═══ 오늘의 한 가지 (D-05) ═══ -->
+  <section class="block" aria-label="오늘의 한 가지">
+    <div class="sec-head"><h2>오늘의 한 가지</h2><span class="more">5분 안에 · 돈 안 들게 · 체크해도 점수는 없어요</span></div>
+    <div class="one-bar">
+      <button class="ck" id="oneCk" aria-label="오늘의 한 가지 완료 표시">✓</button>
+      <span class="tx" id="oneTx"></span>
+      <span class="tag" id="oneTag"></span>
+    </div>
+    <p class="sec-note" id="oneMonth" style="margin-top:8px;"></p>
+  </section>
+
+  <!-- ═══ 이번 달 기록 ═══ -->
+  <section class="block" aria-label="이번 달 기록">
+    <div class="sec-head"><h2>이번 달 기록</h2><a class="more" href="/record">기록 전체 보기 →</a></div>
+    <div class="rec-grid">
+      <div class="panel">
+        <h3 id="calTitle"></h3>
+        <p class="p-sub" id="calSub"></p>
+        <div class="cal-mini" id="calMini"></div>
+        <div class="cal-legend" id="calLegend"></div>
+      </div>
+      <div class="panel">
+        <h3>감정 배지</h3>
+        <p class="p-sub">쌓인 것만 셉니다 · 끊겨도 사라지지 않아요</p>
+        <div class="badge-row" id="badgeRow"></div>
+        <div class="summary-line" id="weekSummary"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 월말 편지 미리보기 ═══ -->
+  <section class="block" aria-label="월말 편지">
+    <div class="sec-head"><h2>월말 편지</h2><a class="more" href="/record#letter">편지 읽기 →</a></div>
+    <div class="letter" id="letterHome"></div>
+  </section>
+
+  <!-- ═══ 리포트 ═══ -->
+  <section class="block" aria-label="리포트">
+    <div class="sec-head"><h2>더 깊이 읽고 싶은 날에는</h2><a class="more" href="/time">이용권 보기 →</a></div>
+    <div class="rep-grid">
+      <a class="rep" href="/gunghap"><h4>관계 설명서</h4>
+        <p>네 층으로 읽는 정밀 궁합. 판정이 아니라 설명이에요. 1층은 무료로 열려 있어요.</p>
+        <span class="meta">궁합 · 첫 층 무료 · 5,900원</span><span class="go">둘의 날씨부터 →</span></a>
+      <a class="rep free" href="/time"><h4>올해의 지도</h4>
+        <p>열두 달을 한 장의 지도로. 달마다 성질의 이름이 붙고, 계획을 그 위에 얹을 수 있어요.</p>
+        <span class="meta">신년운세 · 1분기 무료 · 12,900원</span><span class="go">지도 펼치기 →</span></a>
+      <a class="rep" href="/saju#deep"><h4>쓰는 법과 안 쓸 때</h4>
+        <p>십성의 강약을 좋고 나쁨 대신 사용법으로 뒤집어요. 가장 강한 하나는 무료예요.</p>
+        <span class="meta">나 읽기 · 하나 무료 · 4,900원</span><span class="go">내 사용법 보기 →</span></a>
+    </div>
+  </section>
+
+  <!-- ═══ 더 읽을거리 ═══ -->
+  <section class="block" aria-label="더 읽을거리">
+    <div class="sec-head"><h2>더 읽을거리</h2><span class="more">로그인 없이 · 전부 무료</span></div>
+    <p style="font-size:14px;color:var(--sub);line-height:2;margin:0;">
+      태어난 날 두 글자의 이야기 <a href="/ilju" style="color:var(--brand-deep);font-weight:700;">일주 예순 편</a> ·
+      계절이 바뀔 때마다 한 통 <a href="/jeolgi" style="color:var(--brand-deep);font-weight:700;">절기 스물네 통</a> ·
+      용어가 낯설 때 <a href="/dict" style="color:var(--brand-deep);font-weight:700;">지식 사전</a> ·
+      하루 한 장 <a href="/tarot" style="color:var(--brand-deep);font-weight:700;">타로</a> ·
+      오늘의 괘 <a href="/juyeok" style="color:var(--brand-deep);font-weight:700;">주역</a> ·
+      여덟 글자 계산기 <a href="/calendar" style="color:var(--brand-deep);font-weight:700;">만세력</a>
+    </p>
+  </section>
+
+  <!-- ═══ 다섯 약속 ═══ -->
+  <section class="block" aria-label="다섯 약속">
+    <div class="sec-head"><h2>여덟글자가 하지 않는 것</h2><span class="more">불만을 뒤집으면 약속이 돼요</span></div>
+    <div class="promise-grid" id="promiseGrid"></div>
+  </section>
+
+  <!-- ═══ 공유 카드 ═══ -->
+  <section class="block" aria-label="공유 카드">
+    <div class="sec-head"><h2>오늘의 카드</h2><span class="more">이름은 들어가지 않아요</span></div>
+    <div class="panel share-flex">
+      <div class="share-prev"><canvas id="shareCanvas" width="1080" height="1350" aria-label="오늘의 색 공유 카드"></canvas></div>
+      <div class="share-info">
+        <h3 class="serif" style="margin:0 0 6px;font-size:18px;">오늘의 색을 한 장으로</h3>
+        <p>오늘 일진에서 계산된 색과 문장을 4:5 카드로 저장해요. 내일 열면 다른 카드가 나와요.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary" id="btnShare">카드 저장하기</button>
+          <button class="btn btn-ghost" id="btnShareLink">링크로 공유</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-foot"></footer>
+<nav class="tabbar" aria-label="하단 메뉴"></nav>
+
+<script type="module">
+import { boot, getMoods, getNotes, store, rhythm, earnedBadges, monthStats, todayTarot,
+         drawShareCard, downloadCanvas, toast, EL_IMG, copyShareLink,
+         WEATHER, dateKey, STEMS } from '/assets/js/app.js';
+import { EL_THEME } from '/assets/js/content.js';
+import { ONE_THING, ONE_THING_EL, PROMISES } from '/assets/js/content2.js';
+import { termInfo, tenGod } from '/assets/js/saju.js';
+
+const ctx = boot('home');
+const { t, theme, mine } = ctx;
+const DOW = ['일','월','화','수','목','금','토'];
+
+/* 히어로 */
+document.getElementById('heroCardImg').src = EL_IMG[t.el];
+document.getElementById('heroCardCap').textContent = `오늘의 색 카드 · ${t.gzKr}`;
+document.getElementById('chipEl').textContent = `${theme.name}(${theme.hanja})`;
+document.getElementById('chipGz').textContent = t.gz;
+document.getElementById('heroDate').textContent = `${t.y}년 ${t.mo}월 ${t.d}일 ${DOW[t.dow]}요일 · ${t.gzKr}일`;
+document.getElementById('heroTitle').innerHTML = theme.title.join('<br>');
+document.getElementById('heroSub').textContent = theme.sub;
+document.getElementById('heroAction').textContent = theme.action;
+document.getElementById('heroTags').innerHTML = theme.tags.map(x=>`<span>#${x}</span>`).join('');
+document.getElementById('heroTerm').textContent = `${t.term.next.name}까지 ${t.term.next.daysLeft}일`;
+
+/* 감정 날씨 카드 */
+const todayKey = dateKey(t.y, t.mo, t.d);
+function renderWx(){
+  const cur = getMoods()[todayKey];
+  document.getElementById('wxRow').innerHTML = WEATHER.map(w =>
+    `<button class="wx ${cur===w.key?'on':''}" data-k="${w.key}" aria-pressed="${cur===w.key}">
+      <i style="background:${w.color}"></i><span>${w.key}</span></button>`).join('');
+  document.getElementById('wxSaved').textContent = cur ? '조용히 남겼습니다' : '한 번 누르면 남아요 · 안 골라도 괜찮아요';
+  document.querySelectorAll('#wxRow .wx').forEach(b => b.onclick = () => {
+    const m = getMoods(); m[todayKey] = b.dataset.k; store.set('moods', m);
+    renderWx(); renderRhythm(); renderCal(); renderBadges(); toast('조용히 남겼습니다');
+  });
+  const r = rhythm(mine);
+  document.getElementById('miniMeter').innerHTML = `
+    <div class="row"><span style="width:26px">기분</span><span class="bar"><i style="width:${r.mood}%"></i></span><span>${r.mood}%</span></div>
+    <div class="row"><span style="width:26px">에너지</span><span class="bar"><i style="width:${r.energy}%"></i></span><span>${r.energy}%</span></div>`;
+}
+renderWx();
+
+/* 40유형 카드 */
+if (mine) {
+  const rels = store.get('relations', []);
+  if (rels.length) {
+    document.getElementById('typeName').textContent = `나와 ${rels[0].nick}의 오늘`;
+    document.getElementById('typeSub').textContent = '오늘 두 사람이 각각 어떤 날인지 나란히 놓아 봐요';
+    document.getElementById('typeLink').textContent = '오늘 우리 보기 →';
+  }
+}
+
+/* 타로 카드 */
+const tr = todayTarot();
+document.getElementById('tarotName').textContent = tr.title;
+document.getElementById('tarotLine').textContent = tr.line;
+
+/* 나의 리듬 · 오늘의 결 */
+function renderRhythm(){
+  const r = rhythm(mine);
+  const basis = mine
+    ? `일간 ${STEMS[mine.dayStem]} · 오늘 ${t.gz} · ${mine.rel}${r.loggedDays ? ` · 최근 기록 ${r.loggedDays}일` : ''}`
+    : `오늘 ${t.gz} · 기록이 쌓이면 더 정확해져요`;
+  document.getElementById('rhythmBasisTop').textContent = '점수가 아니라 오늘의 흐름이에요';
+  document.getElementById('rhythmPanel').innerHTML = `
+    <h3>오늘의 흐름</h3>
+    <p class="p-sub">사주의 결과 최근 감정 기록을 함께 읽어요</p>
+    <div class="meter"><div class="lab"><span>기분</span><b>${r.mood}%</b></div>
+      <div class="track"><i style="width:${r.mood}%"></i></div></div>
+    <div class="meter"><div class="lab"><span>에너지</span><b>${r.energy}%</b></div>
+      <div class="track"><i style="width:${r.energy}%"></i></div></div>
+    <span class="tag-basis">${basis}</span>`;
+  const g = document.getElementById('gyeolPanel');
+  if (mine) {
+    g.innerHTML = `
+      <h3>오늘의 결</h3>
+      <p class="p-sub">오늘 하늘과 나의 일간이 만나는 자리</p>
+      <div class="gyeol-ten"><span class="gz">${t.gz}</span><span class="rel">${mine.rel}</span></div>
+      <p class="gyeol-line">${mine.relDay.line}</p>
+      <p class="gyeol-action">${mine.relDay.action}</p>`;
+  } else {
+    g.innerHTML = `
+      <h3>오늘의 결</h3>
+      <p class="p-sub">여덟 글자가 있으면 오늘이 나에게 어떤 날인지 열려요</p>
+      <div class="need-profile">
+        <p>생년월일을 넣으면 네 기둥 여덟 글자가 만들어지고,<br>오늘의 문장이 당신 기준으로 바뀌어요. 무료예요.</p>
+        <a class="btn btn-primary btn-sm" href="/saju">여덟 글자 만들기</a>
+      </div>`;
+  }
+}
+renderRhythm();
+
+/* 이번 달 미니 달력 */
+function renderCal(){
+  const moods = getMoods();
+  const first = new Date(t.y, t.mo-1, 1).getDay();
+  const days = new Date(t.y, t.mo, 0).getDate();
+  let html = DOW.map(d=>`<div class="dow">${d}</div>`).join('');
+  for (let i=0;i<first;i++) html += `<div class="cal-cell blank"></div>`;
+  for (let d=1; d<=days; d++){
+    const k = dateKey(t.y,t.mo,d);
+    const m = moods[k];
+    const w = m && WEATHER.find(x=>x.key===m);
+    html += `<div class="cal-cell ${w?'filled':''} ${d===t.d?'today':''}" ${w?`style="background:${w.soft}"`:''} title="${m||''}">${d}</div>`;
+  }
+  document.getElementById('calMini').innerHTML = html;
+  const ms = monthStats(t.y, t.mo);
+  document.getElementById('calTitle').textContent = `${t.y}년 ${t.mo}월`;
+  document.getElementById('calSub').textContent = ms.count
+    ? `이번 달 ${ms.count}일의 날씨가 모였어요`
+    : '여기부터 시작해요 · 오늘 칸이 기다리고 있어요';
+  const used = Object.keys(ms.byKind);
+  document.getElementById('calLegend').innerHTML = WEATHER
+    .filter(w=>used.includes(w.key))
+    .map(w=>`<span><i style="background:${w.color}"></i>${w.key} ${ms.byKind[w.key]}</span>`).join('') ||
+    `<span style="color:var(--mute)">기록이 색으로 모여요</span>`;
+}
+renderCal();
+
+/* 배지 · 주간 요약 */
+const BADGE_ICON = {
+  seed:'<circle cx="12" cy="15" r="4.5"/><path d="M12 10.5V5m0 0c2 .5 3.5 2 4 4-2 .4-3.4-.2-4-4z"/>',
+  sprout:'<path d="M12 20v-8m0 0C10 8 7 7 4.5 7.5 5 10.5 8 12.5 12 12zm0 0c1.5-3 4-4 6.5-3.5-.4 2.8-3 4.6-6.5 3.5z"/>',
+  stem:'<path d="M12 20V6m0 5c-2.5-.5-4-2-4.5-4.5C10 6.2 11.6 7.6 12 11zm0 4c2.5-.5 4-2 4.5-4.5C14 10.2 12.4 11.6 12 15z"/>',
+  tree:'<path d="M12 20v-5m0 0c-4 .3-6.5-2-7-5.5 4-.4 6.5 1.8 7 5.5zm0 0c4 .3 6.5-2 7-5.5-4-.4-6.5 1.8-7 5.5zM12 9c-1.8-.5-3-1.8-3.3-3.8C10.5 5.4 11.7 6.6 12 9z"/>',
+  forest:'<path d="M7 20v-4m5 4v-6m5 6v-4M7 16c-2.5.2-4-1.2-4.4-3.4C5 12.4 6.6 13.6 7 16zm5-2c-3 .2-5-1.6-5.5-4.2C9.5 9.6 11.5 11.2 12 14zm5 2c2.5.2 4-1.2 4.4-3.4C19 12.4 17.4 13.6 17 16z"/>',
+  ink:'<path d="M6 4h9l3 3v13H6z"/><path d="M9 11h6M9 14.5h6"/>',
+  pages:'<path d="M5 5h9l3 3v11H5z"/><path d="M8 5v14M11 10h4M11 13h4"/>',
+  moon:'<path d="M19 13.5A7.5 7.5 0 1 1 10.5 5 6 6 0 0 0 19 13.5z"/>'
+};
+function renderBadges(){
+  document.getElementById('badgeRow').innerHTML = earnedBadges().map(b=>`
+    <div class="badge ${b.on?'':'off'}">
+      <div class="bd-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${BADGE_ICON[b.key]}</svg></div>
+      <b>${b.name}</b><span>${b.need}</span></div>`).join('');
+  // 주간 요약
+  const moods = getMoods();
+  const start = new Date(t.y, t.mo-1, t.d - t.dow);
+  let cnt=0; const kinds={};
+  for(let i=0;i<7;i++){
+    const d = new Date(start); d.setDate(start.getDate()+i);
+    const m = moods[dateKey(d.getFullYear(), d.getMonth()+1, d.getDate())];
+    if(m){cnt++; kinds[m]=(kinds[m]||0)+1;}
+  }
+  const top = Object.entries(kinds).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('weekSummary').innerHTML = cnt
+    ? `이번 주 요약 — <b>${cnt}일</b>의 날씨가 모였고, <b>${top[0]}</b>이 가장 많았어요.`
+    : `이번 주 요약 — 아직 비어 있어요. 오늘부터 채워도 충분해요.`;
+}
+renderBadges();
+
+/* 월말 편지 미리보기 */
+(function(){
+  const ms = monthStats(t.y, t.mo);
+  const last = new Date(t.y, t.mo, 0).getDate();
+  const el = document.getElementById('letterHome');
+  const p1 = ms.count
+    ? `${t.mo}월에는 지금까지 ${ms.count}번의 날씨를 남기셨어요. 가장 많았던 날씨는 ${ms.top[0]}이었어요.`
+    : `${t.mo}월의 이야기는 아직 첫 줄을 기다리고 있어요. 오늘의 날씨 하나면 충분히 시작돼요.`;
+  el.innerHTML = `
+    <div class="letter-band sm"><img src="/assets/img/letter-moon.webp" alt="" loading="lazy"></div>
+    <h3>${t.mo}월의 편지 <span style="font-size:12px;color:var(--mute);font-family:var(--sans);font-weight:400;">쓰는 중</span></h3>
+    <div class="l-sub">매달 말일, 한 달의 기록이 한 통의 편지가 돼요</div>
+    <p>${p1}</p>
+    <p>${t.term.next.name}(${t.term.next.hanja})가 ${t.term.next.mo}월 ${t.term.next.d}일에 와요. 계절이 한 번 더 깊어지는 자리예요.</p>
+    <div class="fold-note">이 편지는 ${t.mo}월 ${last}일에 완성돼요 · 구독하면 십성 교차 분석과 다음 달 리듬까지 이어져요</div>`;
+})();
+
+/* 오늘의 한 가지 (D-05) */
+(function(){
+  const acts = store.get('actions', {});
+  let txt, tag;
+  if (mine) {
+    const tg = tenGod(mine.dayStem, t.stem);
+    const empt = mine.fp.count.findIndex(c => c === 0);
+    if (empt >= 0 && t.d % 2 === 0) { txt = ONE_THING_EL[empt]; tag = `비어 있는 ${['목','화','토','금','수'][empt]}를 채우는 일`; }
+    else { txt = ONE_THING[tg]; tag = `${t.gz} · 오늘의 결에서 나온 제안`; }
+  } else { txt = ONE_THING[t.stem]; tag = `${t.gz}의 날 제안`; }
+  document.getElementById('oneTx').textContent = txt;
+  document.getElementById('oneTag').textContent = tag;
+  const ck = document.getElementById('oneCk');
+  const key = dateKey(t.y, t.mo, t.d);
+  const paint = () => ck.classList.toggle('on', !!store.get('actions', {})[key]);
+  paint();
+  const paintMonth = () => {
+    const a = store.get('actions', {});
+    const pfx = `${t.y}-${String(t.mo).padStart(2,'0')}-`;
+    const n = Object.keys(a).filter(k => k.startsWith(pfx)).length;
+    document.getElementById('oneMonth').textContent =
+      n ? `이번 달에 ${n}가지를 해내셨어요 · 점수는 세지 않아요` : '';
+  };
+  paintMonth();
+  ck.onclick = () => {
+    const a = store.get('actions', {});
+    if (a[key]) delete a[key]; else a[key] = 1;
+    store.set('actions', a); paint(); paintMonth();
+    if (a[key]) toast('오늘의 한 가지, 해내셨네요');
+  };
+})();
+
+/* 다섯 약속 */
+document.getElementById('promiseGrid').innerHTML = PROMISES.map(([b, s]) =>
+  `<div class="promise"><b>${b}</b><span>${s}</span></div>`).join('');
+
+/* 공유 카드 */
+const cv = document.getElementById('shareCanvas');
+const paint = () => drawShareCard(cv, ctx);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(paint);
+paint(); setTimeout(paint, 500);
+const dl = async () => { await paint(); downloadCanvas(cv, `여덟글자_오늘의색_${t.y}${String(t.mo).padStart(2,'0')}${String(t.d).padStart(2,'0')}.png`); toast('카드를 저장했어요'); };
+document.getElementById('btnShare').onclick = dl;
+document.getElementById('btnShareTop').onclick = dl;
+document.getElementById('btnShareLink').onclick = () =>
+  copyShareLink({ t:'today', y:t.y, mo:t.mo, d:t.d, gz:t.gz, el:t.el });
+</script>
+</body>
+</html>

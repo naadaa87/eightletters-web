@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>마흔 가지 유형 — 여덟글자</title>
+<meta name="description" content="일간 열에 태어난 계절 넷을 곱한 마흔 가지 유형. 당신은 어떤 계절의 어떤 글자인가요.">
+<link rel="canonical" href="https://eightletters-web.pages.dev/type">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/icons/favicon-64.png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#35714F">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="여덟글자">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="마흔 가지 유형 — 여덟글자">
+<meta property="og:description" content="일간 열에 태어난 계절 넷을 곱한 마흔 가지 유형. 당신은 어떤 계절의 어떤 글자인가요.">
+<meta property="og:url" content="https://eightletters-web.pages.dev/type">
+<meta property="og:image" content="https://eightletters-web.pages.dev/assets/img/og-home.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="site-head"></header>
+
+<main class="wrap" id="main">
+  <section class="block" style="margin-top:26px;">
+    <div class="sec-head"><h2>마흔 가지 유형</h2><span class="more">일간 열 × 태어난 계절 넷</span></div>
+    <p style="font-size:14px;color:var(--sub);line-height:1.95;max-width:680px;margin:0 0 16px;">
+      같은 나무도 봄에 난 나무와 겨울을 견딘 나무는 결이 달라요. 그래서 여덟글자의 유형은
+      나를 대표하는 글자인 일간 열 가지에, 태어난 달의 계절 넷을 곱해 마흔 가지로 나눠요.
+      유형은 등급이 아니에요. 어느 계절의 어떤 글자로 태어났는지, 그뿐이에요.</p>
+    <div id="myType"></div>
+    <div class="type-grid" id="tGrid" style="margin-top:16px;"></div>
+  </section>
+</main>
+
+<footer class="site-foot"></footer>
+<nav class="tabbar" aria-label="하단 메뉴"></nav>
+
+<script type="module">
+import { boot } from '/assets/js/app.js';
+import { STEM_P, SEASON4, branchSeason, typeName } from '/assets/js/content3.js';
+import { STEMS } from '/assets/js/saju.js';
+const ctx = boot(null);
+const { mine } = ctx;
+let myS = -1, mySe = -1;
+if (mine) { myS = mine.dayStem; mySe = branchSeason(mine.fp.pillars.month.branch);
+  const tn = typeName(myS, mySe);
+  document.getElementById('myType').innerHTML = `
+    <div class="panel" style="border-color:var(--brand);border-width:1.5px;">
+      <p class="p-sub" style="margin:0 0 4px;">당신의 유형</p>
+      <p class="serif" style="font-size:21px;font-weight:600;margin:0 0 8px;">「${tn}」</p>
+      <p style="font-size:14px;line-height:1.9;margin:0 0 6px;">${SEASON4[mySe].line}</p>
+      <p style="font-size:14px;line-height:1.9;margin:0 0 6px;">${STEM_P[myS].t1} ${STEM_P[myS].t2}</p>
+      <p class="gyeol-action">잘 쓰는 법 — ${STEM_P[myS].use}</p>
+    </div>`;
+} else {
+  document.getElementById('myType').innerHTML = `
+    <div class="panel" style="text-align:center;">
+      <p style="font-size:14px;color:var(--sub);margin:0 0 12px;">당신의 유형은 생년월일에서 나와요. 1분이면 충분해요.</p>
+      <a class="btn btn-primary btn-sm" href="/saju">내 유형 알아보기 · 무료</a>
+    </div>`;
+}
+document.getElementById('tGrid').innerHTML = STEM_P.map((st, si) =>
+  SEASON4.map((se, ei) => `
+    <div class="type-cell ${si===myS&&ei===mySe?'mine':''}">
+      <span class="tn">${typeName(si, ei)}</span>
+      <span class="ts">${STEMS[si]} 일간 · ${['봄','여름','가을','겨울'][ei]}생</span>
+    </div>`).join('')).join('');
+</script>
+</body>
+</html>

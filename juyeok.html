@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>주역 예순네 괘 — 여덟글자</title>
+<meta name="description" content="하늘과 땅, 물과 불이 만드는 예순네 개의 장면. 오늘의 괘를 일진에서 뽑아 읽어요.">
+<link rel="canonical" href="https://eightletters-web.pages.dev/juyeok">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/icons/favicon-64.png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#35714F">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="여덟글자">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="주역 예순네 괘 — 여덟글자">
+<meta property="og:description" content="하늘과 땅, 물과 불이 만드는 예순네 개의 장면. 오늘의 괘를 일진에서 뽑아 읽어요.">
+<meta property="og:url" content="https://eightletters-web.pages.dev/juyeok">
+<meta property="og:image" content="https://eightletters-web.pages.dev/assets/img/og-time.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="site-head"></header>
+
+<main class="wrap" id="main">
+  <section class="block" style="margin-top:26px;">
+    <div class="sec-head"><h2>오늘의 괘</h2><span class="more" id="jDate"></span></div>
+    <div class="panel" style="text-align:center;padding:30px 24px;">
+      <div id="jSym" style="font-size:44px;line-height:1.15;"></div>
+      <p class="serif" id="jName" style="font-size:22px;font-weight:600;margin:10px 0 6px;"></p>
+      <p id="jMean" style="font-size:14.5px;color:var(--sub);line-height:1.9;max-width:480px;margin:0 auto 8px;"></p>
+      <p class="gyeol-action" id="jAct" style="max-width:480px;margin:0 auto;"></p>
+    </div>
+  </section>
+  <section class="block">
+    <div class="sec-head"><h2>예순네 개의 장면</h2><span class="more">팔괘 여덟이 위아래로 만나요</span></div>
+    <p style="font-size:14px;color:var(--sub);line-height:1.95;max-width:680px;margin:0 0 16px;">
+      주역은 점서이기 전에 세상을 여덟 가지 재료 — 하늘 · 연못 · 불 · 우레 · 바람 · 물 · 산 · 땅 — 로
+      읽는 책이에요. 그 여덟이 위아래로 겹쳐 예순네 개의 장면이 돼요. 여덟글자는 하루에 하나,
+      오늘의 일진으로 괘를 뽑아 그 장면을 오늘의 렌즈로 건네 드려요.</p>
+    <div class="hex-grid" id="jGrid"></div>
+  </section>
+</main>
+
+<footer class="site-foot"></footer>
+<nav class="tabbar" aria-label="하단 메뉴"></nav>
+
+<script type="module">
+import { boot } from '/assets/js/app.js';
+import { dayPillarIndex } from '/assets/js/saju.js';
+import { TRIGRAM, HEX, HEX_ACTION } from '/assets/js/content3.js';
+const ctx = boot(null);
+const { t } = ctx;
+document.getElementById('jDate').textContent = `${t.y}년 ${t.mo}월 ${t.d}일 · ${t.gz}일`;
+const di = dayPillarIndex(t.y, t.mo, t.d);
+const u = di % 8, l = Math.floor(di / 8) % 8;
+const key = String(u) + String(l);
+const [name, no] = HEX[key];
+document.getElementById('jSym').innerHTML = `${TRIGRAM[u].sym}<br>${TRIGRAM[l].sym}`;
+document.getElementById('jName').textContent = `${no}. ${name}`;
+document.getElementById('jMean').textContent =
+  `${TRIGRAM[l].n} 위에 ${TRIGRAM[u].n}이 있는 모양이에요. ${TRIGRAM[l].mean} 바탕 위에서 ${TRIGRAM[u].mean} 하루예요.`;
+document.getElementById('jAct').textContent = `오늘의 한 가지 — ${HEX_ACTION[l]}`;
+let grid = '';
+for (let uu = 0; uu < 8; uu++) for (let ll = 0; ll < 8; ll++) {
+  const k = String(uu) + String(ll);
+  const [nm, n2] = HEX[k];
+  grid += `<div class="hex-cell ${k===key?'today':''}"><span class="sym">${TRIGRAM[uu].sym}<br>${TRIGRAM[ll].sym}</span><b>${n2}. ${nm}</b></div>`;
+}
+document.getElementById('jGrid').innerHTML = grid;
+</script>
+</body>
+</html>
