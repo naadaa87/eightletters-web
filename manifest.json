@@ -1,15 +1,30 @@
 {
   "name": "여덟글자",
   "short_name": "여덟글자",
-  "description": "점수도 등급도 없이, 오늘의 색과 감정으로 읽는 사주",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
+  "description": "점수도 등급도 없이, 오늘의 색과 감정으로 읽는 사주",
   "display": "standalone",
   "background_color": "#FDFCF9",
   "theme_color": "#35714F",
   "lang": "ko",
   "icons": [
-    { "src": "/assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/assets/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

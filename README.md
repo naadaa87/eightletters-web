@@ -3,7 +3,7 @@
 점수도 등급도 없이, 오늘의 색과 감정으로 읽는 사주.
 이 저장소가 곧 배포본입니다. 빌드 과정이 없습니다.
 
-- 서비스: https://eightletters-web.pages.dev
+- 서비스: https://yeodeol.kr  (구주소 eightletters-web.pages.dev 는 301로 넘어옴)
 - 화면 100개 · 코드/문안 전부 정적 파일 · 서버 없음 · 개인 데이터는 브라우저에만 저장
 
 ---
@@ -47,8 +47,13 @@ Pages가 GitHub에 연결되어 있으면 push만으로 배포가 끝납니다.
 - **`_redirects` 파일에 `.html` 재작성 규칙을 절대 넣지 마세요.**
   Pages는 `/saju.html → /saju` 자동 리다이렉트를 하므로, 반대 방향 규칙을 넣으면
   무한 리다이렉트가 됩니다. 이 버그는 로컬 `python http.server` 에서는 보이지 않습니다.
-- 커스텀 도메인을 붙이면 `tools/gen.mjs`와 각 HTML의 `eightletters-web.pages.dev`를
-  새 도메인으로 바꿔 재생성하세요. (`grep -rl "eightletters-web" . | xargs sed -i 's/구주소/새주소/g'`)
+- 도메인이 또 바뀌면 전체 치환 후 정적 페이지를 재생성하세요.
+  ```bash
+  grep -rl "yeodeol.kr" . --include="*.html" --include="*.xml" --include="*.txt" \
+    --include="*.mjs" --include="*.js" | xargs sed -i 's/yeodeol\.kr/새주소/g'
+  cd tools && node gen.mjs
+  ```
+  `functions/_middleware.js` 의 `PRIMARY` 값도 함께 바꿔야 합니다.
 
 ### 방문 통계 켜기 (1분)
 
@@ -94,6 +99,7 @@ Pages 프로젝트 → **Metrics → Web Analytics → Enable**.
 /assets/img        수채 19장 + OG 9장
 /assets/icons      파비콘 · PWA 아이콘
 /tools/gen.mjs     일주·절기·sitemap 재생성기
+/functions/        _middleware.js — pages.dev → yeodeol.kr 301 리다이렉트
 serve.py           로컬 확인용 (python3 serve.py → :8021, 클린 URL 지원)
 test.mjs · t2.mjs  엔진 검증 (node test.mjs)
 ```

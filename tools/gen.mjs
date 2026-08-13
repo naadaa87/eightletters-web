@@ -13,7 +13,7 @@ const B_ROM = ['ja','chuk','in','myo','jin','sa','o','mi','shin','yu','sul','hae
 const STEM_EL = [0,0,1,1,2,2,3,3,4,4];
 const EL = ['목','화','토','금','수'];
 const EL_H = ['木','火','土','金','水'];
-const SITE = 'https://eightletters-web.pages.dev';
+const SITE = 'https://yeodeol.kr';
 
 const head = (title, desc, path, og, extra = '') => `<!doctype html>
 <html lang="ko">

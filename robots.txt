@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /share
 
-Sitemap: https://eightletters-web.pages.dev/sitemap.xml
+Sitemap: https://yeodeol.kr/sitemap.xml
