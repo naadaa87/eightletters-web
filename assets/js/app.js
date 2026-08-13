@@ -288,7 +288,7 @@ export function renderChrome(active) {
         <li>절기 — 태양 황경 직접 계산 (입춘 315°)</li>
         <li>일주 — 율리우스 적일 (JDN+49) % 60</li>
         <li>시주 — 오자둔 · 조자시 기준</li></ul></div>
-      <div class="foot-note"><span>© 여덟글자 · eightletters-web.pages.dev</span><span>생년월일과 일기는 서버로 전송되지 않습니다 · 방문 통계 외에는 아무것도 수집하지 않아요</span></div>
+      <div class="foot-note"><span>© 여덟글자 · yeodeol.kr</span><span>생년월일과 일기는 서버로 전송되지 않습니다 · 방문 통계 외에는 아무것도 수집하지 않아요</span></div>
     </div>`;
   const fx = document.getElementById('ftExport');
   if (fx) fx.onclick = () => exportAll();
@@ -360,7 +360,7 @@ export async function drawShareCard(canvas, { t, theme, mine }) {
   }
   x.fillStyle = 'rgba(46,45,41,.5)'; x.font = `400 27px ${sans}`;
   if (mine) x.fillText(`일간 ${STEMS[mine.dayStem]} · 오늘 ${t.gz} · ${mine.rel}`, 84, IMG_H + 592);
-  const brand = '여덟글자 · eightletters-web.pages.dev';
+  const brand = '여덟글자 · yeodeol.kr';
   x.fillStyle = 'rgba(46,45,41,.42)';
   x.fillText(brand, mine ? W - 84 - x.measureText(brand).width : 84, IMG_H + 592);
 }
