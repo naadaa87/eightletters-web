@@ -1,6 +1,6 @@
 /* 모든 요청 앞에서 두 가지를 합니다.
 
-   1) pages.dev 로 들어온 방문을 yeodeol.kr 로 넘깁니다.
+   1) pages.dev 와 www 로 들어온 방문을 yeodeol.kr 로 넘깁니다.
       같은 사이트가 두 주소로 색인되면 검색 순위가 갈리기 때문입니다.
       - 운영 주소(eightletters-web.pages.dev)만 넘깁니다.
       - 미리보기 배포(abc123.eightletters-web.pages.dev)는 그대로 둡니다. 테스트해야 하니까요.
@@ -11,7 +11,7 @@
 
    정적 파일(/assets/*)은 _routes.json 에서 이 함수를 거치지 않도록 빼 두었습니다. */
 const PRIMARY = 'yeodeol.kr';
-const OLD_HOSTS = ['eightletters-web.pages.dev'];
+const OLD_HOSTS = ['eightletters-web.pages.dev', 'www.yeodeol.kr'];
 const PRIVATE = /^\/(functions|tools|node_modules|\.git)(\/|$)|^\/(README\.md|serve\.py|package(-lock)?\.json|wrangler\.toml)$|\.mjs$/i;
 
 export async function onRequest(context) {
