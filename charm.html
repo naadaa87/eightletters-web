@@ -24,7 +24,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/style.css?v=20261117b">
 </head>
 <body>
 <a class="skip" href="#main">본문으로 건너뛰기</a>
@@ -33,7 +33,7 @@
 <main class="wrap" id="main">
 
   <section class="block" style="margin-top:26px;">
-    <div class="sec-head"><h2>부적과 배치</h2><span class="more">진단과 방향은 무료 · 파일과 상세는 3,900원</span></div>
+    <div class="sec-head"><h2>부적과 배치</h2><span class="more">진단과 방향은 무료 · 파일과 상세는 <span data-price="charm">3,900원</span></span></div>
     <p style="font-size:14px;color:var(--sub);line-height:1.95;max-width:680px;margin:0 0 6px;">
       여덟글자의 부적은 액운을 막아 준다고 말하지 않아요. 대신 이렇게 말해요 —
       당신의 여덟 글자에서 비어 있는 기운을 부르는 글자를 담았고, 지니고 다니는 동안
@@ -76,8 +76,8 @@
                 <div class="fold-row"><b>부적 파일 두 가지</b><span>배경화면 규격 · 인쇄 규격</span></div>
               </div>
               <div class="fold-cta">
-                <button class="btn btn-ghost btn-sm pay-btn" data-p="부적">이어서 받기 · 3,900원</button>
-                <span class="fold-note">결제는 11월에 열어요 · 한 번 결제하면 계속 볼 수 있어요</span>
+                <button class="btn btn-ghost btn-sm pay-btn" data-p="charm">이어서 받기 · 3,900원</button>
+                <span class="fold-note">한 번 결제하면 계속 볼 수 있어요 · 광고는 없어요</span>
               </div>
             </div>
           </div>
@@ -93,9 +93,9 @@
 <nav class="tabbar" aria-label="하단 메뉴"></nav>
 
 <script type="module">
-import { boot, wirePayButtons } from '/assets/js/app.js';
-import { ELEMENTS, ELEMENTS_HANJA, STEMS } from '/assets/js/saju.js';
-import { C05_LACK } from '/assets/js/content2.js';
+import { boot, wirePayButtons } from '/assets/js/app.js?v=20261117b';
+import { ELEMENTS, ELEMENTS_HANJA, STEMS } from '/assets/js/saju.js?v=20261117b';
+import { C05_LACK } from '/assets/js/content2.js?v=20261117b';
 const ctx = boot(null);
 const { mine } = ctx;
 const EL_COL = ['#1F7A5C','#B04B3F','#A67C2E','#6E7370','#25384C'];

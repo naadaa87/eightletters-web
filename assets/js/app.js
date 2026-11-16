@@ -1,7 +1,11 @@
 /* 여덟글자 공통 앱 유틸 — app.js
-   저장은 전부 localStorage. 서버로 나가는 데이터가 없습니다. */
-import { todayInfo, fourPillars, tenGod, TEN_GODS, fmt, STEMS, ELEMENTS, ELEMENTS_HANJA, dateKey } from './saju.js';
-import { EL_THEME, WEATHER, TEN_GOD_DAY, TAROT, STEM_DEF, BADGES } from './content.js';
+   생년월일·감정 기록·일기는 전부 이 기기의 localStorage 에만 저장합니다.
+   서버로 가는 것은 세 가지뿐입니다.
+     1) 익명 방문 숫자 — 경로와 '오늘 첫 방문인지' 여부. 쿠키·기기 번호 없음. GPC/DNT 를 켜면 보내지 않음
+     2) 방문자가 직접 적어 보낸 문의
+     3) 방문자가 직접 신청한 출시 알림 이메일 */
+import { todayInfo, fourPillars, tenGod, TEN_GODS, fmt, STEMS, ELEMENTS, ELEMENTS_HANJA, dateKey } from '/assets/js/saju.js?v=20261117b';
+import { EL_THEME, WEATHER, TEN_GOD_DAY, TAROT, STEM_DEF, BADGES } from '/assets/js/content.js?v=20261117b';
 
 /* ── 저장 ─────────────────────────── */
 const NS = 'el.';
@@ -18,9 +22,14 @@ try {
     localStorage.setItem('el._migrated', '1');
   }
 } catch {}
+/* 저장할 때 어떤 기능을 썼는지 '이름만' 셉니다 (내용은 보내지 않아요) */
+const STORE_EVENT = { profile: 'saju_made', moods: 'mood_saved', notes: 'note_saved', plans: 'plan_saved', actions: 'action_done', relations: 'relation_saved' };
 export const store = {
   get(k, d = null) { try { const v = localStorage.getItem(NS + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
-  set(k, v) { try { localStorage.setItem(NS + k, JSON.stringify(v)); } catch {} },
+  set(k, v) {
+    try { localStorage.setItem(NS + k, JSON.stringify(v)); } catch {}
+    if (STORE_EVENT[k]) trackEvent(STORE_EVENT[k]);
+  },
 };
 export const getProfile = () => store.get('profile');
 export const getMoods = () => store.get('moods', {});
@@ -139,6 +148,7 @@ export function decodeShare(str){
 export function shareLink(obj){ return `${location.origin}/share#${encodeShare(obj)}`; }
 export async function copyShareLink(obj, msg='링크를 복사했어요 · 여는 사람은 여덟글자에서 보게 돼요'){
   const url = shareLink(obj);
+  trackEvent('link_shared');
   try {
     if (navigator.share) { await navigator.share({ title:'여덟글자', url }); toast('공유했어요'); return; }
   } catch {}
@@ -166,28 +176,237 @@ const BK_KEYS = ['profile','relations','moods','notes','plans','actions','wish',
 export function exportAll() {
   const out = { app: 'yeodeol-8', v: 1, at: new Date().toISOString(), data: {} };
   for (const k of BK_KEYS) { const v = store.get(k, null); if (v !== null) out.data[k] = v; }
+  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/^el\.plans_\d{4}$/.test(k)) out.data[k.slice(3)] = store.get(k.slice(3)); } } catch {}
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' }));
   a.download = `여덟글자_백업_${out.at.slice(0, 10)}.json`;
-  a.click(); URL.revokeObjectURL(a.href);
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+  trackEvent('backup_export');
   toast('기록을 파일로 담았어요 · 기록은 당신 것이에요');
 }
 export async function importAll(file) {
   const obj = JSON.parse(await file.text());
   if (!obj || obj.app !== 'yeodeol-8' || obj.v !== 1) throw new Error('형식이 달라요');
   let n = 0;
-  for (const [k, v] of Object.entries(obj.data)) if (BK_KEYS.includes(k)) { store.set(k, v); n++; }
+  for (const [k, v] of Object.entries(obj.data)) if (BK_KEYS.includes(k) || /^plans_\d{4}$/.test(k)) { try { localStorage.setItem(NS + k, JSON.stringify(v)); } catch {} n++; }
+  trackEvent('backup_import');
   return n;
 }
 
-/* ── 결제 예고 · 관심 저장 (B-23) ── */
-export function wirePayButtons(root = document) {
-  root.querySelectorAll('.pay-btn').forEach(b => b.onclick = () => {
-    const w = store.get('wish', {});
-    const id = b.dataset.p || b.textContent.trim();
-    if (!w[id]) { w[id] = Date.now(); store.set('wish', w); }
-    toast('11월에 열어요 · 열리면 이 자리에서 알려 드릴게요');
+/* ── 익명 사용 통계 ─────────────────
+   경로와 '오늘 이 기기의 첫 방문인가'만 보냅니다. 쿠키도, 기기 번호도 없습니다.
+   브라우저에서 추적 거부(GPC · Do Not Track)를 켜 두면 아무것도 보내지 않습니다. */
+const noTrack = () => {
+  try { return navigator.globalPrivacyControl === true || navigator.doNotTrack === '1' || window.doNotTrack === '1' || /^(localhost|127\.)/.test(location.hostname); }
+  catch { return true; }
+};
+const kstToday = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+function beacon(payload) {
+  if (noTrack()) return;
+  const body = JSON.stringify(payload);
+  try {
+    if (navigator.sendBeacon && navigator.sendBeacon('/api/e', new Blob([body], { type: 'text/plain' }))) return;
+  } catch {}
+  try { fetch('/api/e', { method: 'POST', body, keepalive: true, headers: { 'content-type': 'text/plain' } }).catch(() => {}); } catch {}
+}
+export function trackPage() {
+  try {
+    const day = kstToday();
+    const u = localStorage.getItem('el._seen') !== day;
+    const n = !localStorage.getItem('el._first');
+    if (u) localStorage.setItem('el._seen', day);
+    if (n) localStorage.setItem('el._first', day);
+    let r = '';
+    try { const h = document.referrer ? new URL(document.referrer).hostname : ''; if (h && h !== location.hostname) r = h; } catch {}
+    const w = Math.min(screen.width || innerWidth, innerWidth);
+    const d = w < 768 ? 'm' : (w < 1100 && matchMedia('(pointer:coarse)').matches ? 't' : 'd');
+    beacon(u ? { p: location.pathname, u: 1, n: n ? 1 : 0, r, d } : { p: location.pathname });
+  } catch {}
+}
+/* 같은 기능은 기기당 하루 한 번만 셉니다 */
+export function trackEvent(k, x = '') {
+  try {
+    const day = kstToday();
+    let log = JSON.parse(localStorage.getItem('el._ev') || '{}');
+    if (log.d !== day) log = { d: day, k: [] };
+    const id = x ? `${k}:${x}` : k;
+    if (log.k.includes(id)) return;
+    log.k.push(id);
+    localStorage.setItem('el._ev', JSON.stringify(log));
+    beacon(x ? { k, x } : { k });
+  } catch {}
+}
+
+/* ── 운영 설정 (공지 · 상품 상태 · 사업자 정보) ──
+   관리자 화면에서 바꾼 값이 1분 안에 내려옵니다. 서버가 없거나 느려도 화면은 기본값으로 그대로 돌아갑니다. */
+let cfgPromise = null;
+export function loadConfig() {
+  if (cfgPromise) return cfgPromise;
+  let cached = null;
+  try { cached = JSON.parse(sessionStorage.getItem('el._cfg') || 'null'); } catch {}
+  const net = fetch('/api/config', { headers: { accept: 'application/json' } })
+    .then(r => (r.ok ? r.json() : null))
+    .then(j => {
+      if (j && !j.offline) { j._t = Date.now(); try { sessionStorage.setItem('el._cfg', JSON.stringify(j)); } catch {} return j; }
+      return cached;
+    })
+    .catch(() => cached);
+  cfgPromise = cached && Date.now() - (cached._t || 0) < 2 * 60e3 ? Promise.resolve(cached) : net;
+  return cfgPromise;
+}
+const escHtml = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const safeHref = v => (/^(\/|https:\/\/)/.test(String(v || '')) ? String(v) : '');
+
+/* 상단 띠 배너 — 닫으면 같은 배너는 다시 뜨지 않아요 */
+function renderBanner(cfg) {
+  const b = cfg?.banner;
+  if (!b || store.get('bannerOff') === b.id || document.querySelector('.notice-bar')) return;
+  const bar = document.createElement('div');
+  bar.className = 'notice-bar';
+  bar.setAttribute('role', 'region');
+  bar.setAttribute('aria-label', '알림');
+  const href = safeHref(b.link);
+  bar.innerHTML = `<div class="wrap"><span class="nb-dot" aria-hidden="true"></span><span class="nb-tx">${escHtml(b.title)}</span>
+    ${href ? `<a class="nb-go" href="${escHtml(href)}">${escHtml(b.label || '자세히')} <span aria-hidden="true">→</span></a>` : ''}
+    <button class="nb-x" aria-label="알림 닫기">×</button></div>`;
+  bar.querySelector('.nb-x').onclick = () => { store.set('bannerOff', b.id); bar.remove(); };
+  document.body.insertBefore(bar, document.body.firstChild);
+}
+
+/* 푸터 사업자 정보 — 전자상거래법 제10조 표시 사항 */
+function renderBiz(cfg) {
+  const box = document.getElementById('footBiz');
+  if (!box) return;
+  const s = cfg?.settings || {};
+  const regDigits = String(s['biz.regno'] || '').replace(/\D/g, '');
+  const items = [
+    s['biz.name'] && `상호 ${escHtml(s['biz.name'])}`,
+    s['biz.ceo'] && `대표 ${escHtml(s['biz.ceo'])}`,
+    s['biz.regno'] && `사업자등록번호 ${escHtml(s['biz.regno'])}${regDigits.length === 10 ? ` <a href="https://www.ftc.go.kr/bizCommPop.do?wrkr_no=${regDigits}" target="_blank" rel="noopener">사업자정보 확인</a>` : ''}`,
+    s['biz.mailorder'] && `통신판매업 신고 ${escHtml(s['biz.mailorder'])}`,
+    s['biz.address'] && `주소 ${escHtml(s['biz.address'])}`,
+    s['biz.phone'] && `전화 ${escHtml(s['biz.phone'])}`,
+    (s['biz.email'] || s['cs.email']) && `이메일 ${escHtml(s['biz.email'] || s['cs.email'])}`,
+    s['privacy.officer'] && `개인정보 보호책임자 ${escHtml(s['privacy.officer'])}`,
+    `호스팅 ${escHtml(s['biz.hosting'] || 'Cloudflare, Inc.')}`,
+  ].filter(Boolean);
+  box.innerHTML = items.map(x => `<span>${x}</span>`).join('');
+}
+
+/* 문서 안의 data-cfg="키" 자리에 운영 설정 값을 채웁니다 (약관 · 방침 · 문의 화면) */
+function fillCfg(cfg) {
+  const s = cfg?.settings || {};
+  document.querySelectorAll('[data-cfg]').forEach(el => {
+    const v = s[el.dataset.cfg];
+    if (v) el.textContent = v;
   });
+  document.querySelectorAll('[data-cfg-show]').forEach(el => { el.hidden = !s[el.dataset.cfgShow]; });
+}
+
+/* ── 상품 · 결제 버튼 ─────────────────
+   준비 중: 누르면 출시 알림 신청 · 판매 중: 결제 링크로 · 잠시 멈춤: 안내만 · 숨김: 버튼을 감춥니다 */
+const LEGACY_PID = { '관계 설명서':'rel', '말투 사전':'talk', '올해의 지도':'year', '열 해의 강':'daeun', '쓰는 법':'use',
+  '몸의 신호':'body', '부적':'charm', '구독':'monthly', '신년 묶음':'newyear' };
+export const PRODUCTS = {
+  rel: { name: '관계 설명서', label: '5,900원' }, talk: { name: '말투 사전', label: '3,900원' },
+  year: { name: '올해의 지도', label: '12,900원' }, daeun: { name: '열 해의 강', label: '7,900원' },
+  use: { name: '쓰는 법과 안 쓸 때', label: '4,900원' }, body: { name: '몸이 보내는 신호', label: '2,900원' },
+  charm: { name: '나에게 맞는 부적', label: '3,900원' }, monthly: { name: '이달의 결 · 구독', label: '월 4,900원' },
+  newyear: { name: '신년 묶음', label: '22,900원' },
+};
+const pidOf = b => { const p = b.dataset.p || ''; return PRODUCTS[p] ? p : (LEGACY_PID[p] || ''); };
+
+export function wirePayButtons(root = document) {
+  const btns = [...root.querySelectorAll('.pay-btn')];
+  const apply = cfg => {
+    const P = cfg && !cfg.offline && cfg.products && Object.keys(cfg.products).length ? cfg.products : null;
+    // 가격 표시 자리
+    if (P) root.querySelectorAll('[data-price]').forEach(el => { const p = P[el.dataset.price]; if (p) el.textContent = p.label; });
+    btns.forEach(b => {
+      const id = pidOf(b);
+      const p = P ? P[id] : null;
+      if (P && id && !p) { b.hidden = true; return; }               // 숨김
+      const status = p?.status || 'soon';
+      const label = p?.label || PRODUCTS[id]?.label || '';
+      if (label && b.dataset.keep !== '1') {
+        const base = (b.dataset.base ||= b.textContent.replace(/\s*·\s*[^·]*원\s*$/, '').trim());
+        b.textContent = status === 'soon' && b.dataset.soon ? b.dataset.soon : `${base} · ${label}`;
+      }
+      b.dataset.status = status;
+      let chip = b.nextElementSibling?.classList.contains('pay-state') ? b.nextElementSibling : null;
+      const chipText = status === 'soon' ? '준비 중 · 알림 신청 가능' : status === 'paused' ? '잠시 쉬는 중' : '';
+      if (chipText && !chip) { chip = document.createElement('span'); chip.className = 'pay-state'; b.after(chip); }
+      if (chip) { chip.textContent = chipText; chip.hidden = !chipText; }
+      b.onclick = () => {
+        if (status === 'open' && p?.url) {
+          trackEvent('buy_click', id);
+          window.open(p.url, '_blank', 'noopener');
+          return;
+        }
+        if (status === 'paused') { toast('지금은 잠시 쉬고 있어요 · 무료 구간은 그대로 열려 있어요'); return; }
+        const w = store.get('wish', {});
+        if (!w[id || b.textContent.trim()]) { w[id || b.textContent.trim()] = Date.now(); store.set('wish', w); }
+        if (id) trackEvent('wish', id);
+        openNotifySheet(id, cfg);
+      };
+    });
+  };
+  apply(null);
+  loadConfig().then(apply);
+}
+
+/* 출시 알림 신청 시트 */
+function openNotifySheet(id, cfg) {
+  const prod = cfg?.products?.[id] || PRODUCTS[id] || { name: '이 리포트' };
+  const open = cfg?.settings?.['site.notify_open'] !== '0' && !cfg?.offline;
+  document.querySelector('.sheet-ov')?.remove();
+  const ov = document.createElement('div');
+  ov.className = 'sheet-ov';
+  ov.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="shT">
+    <button class="sheet-x" aria-label="닫기">×</button>
+    <p class="sheet-kicker">결제 준비 중</p>
+    <h3 id="shT">${escHtml(prod.name)} — 열리면 알려 드릴게요</h3>
+    <p class="sheet-lead">지금은 결제를 준비하고 있어요. 무료로 열린 부분은 그대로 읽으실 수 있어요.
+      ${open ? '이메일을 남기시면 결제가 열리는 날 <b>한 번만</b> 알려 드려요. 광고 메일은 보내지 않아요.' : '열리는 날 이 자리와 공지사항에서 알려 드릴게요.'}</p>
+    ${open ? `<form class="sheet-form" novalidate>
+      <label class="sr" for="shE">이메일</label>
+      <input id="shE" type="email" inputmode="email" autocomplete="email" placeholder="이메일 주소" required>
+      <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <label class="sheet-agree"><input type="checkbox" id="shC"> <span><b>(필수)</b> 개인정보 수집·이용에 동의해요</span></label>
+      <p class="sheet-fine">수집 항목: 이메일 · 목적: 출시 알림 1회 발송 · 보유: 알림을 보낸 뒤 30일, 늦어도 신청일로부터 1년.
+        동의하지 않으셔도 무료 구간 이용에는 아무 제한이 없어요. <a href="/privacy">개인정보처리방침</a></p>
+      <p class="sheet-err" role="alert"></p>
+      <button class="btn btn-primary" style="width:100%;">알림 신청하기</button>
+    </form>` : ''}
+    <button class="sheet-skip">${open ? '이메일 없이 관심만 남길게요' : '알겠어요'}</button>
+  </div>`;
+  const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = e => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  ov.querySelector('.sheet-x').onclick = close;
+  ov.querySelector('.sheet-skip').onclick = () => { close(); toast('관심을 남겼어요 · 열리면 이 자리에서 알려 드릴게요'); };
+  const f = ov.querySelector('form');
+  if (f) f.onsubmit = async e => {
+    e.preventDefault();
+    const err = ov.querySelector('.sheet-err');
+    const email = ov.querySelector('#shE').value.trim();
+    err.textContent = '';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = '이메일 주소를 다시 확인해 주세요.'; return; }
+    if (!ov.querySelector('#shC').checked) { err.textContent = '알림을 받으려면 동의가 필요해요.'; return; }
+    const btn = f.querySelector('button'); btn.disabled = true;
+    try {
+      const r = await fetch('/api/notify', { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ product: id, email, consent: true, hp: f.website.value }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || '지금은 신청을 받지 못했어요. 잠시 뒤에 다시 시도해 주세요.');
+      trackEvent('notify_signup', id);
+      close();
+      toast(j.already ? '이미 신청해 두셨어요 · 열리면 알려 드릴게요' : '신청했어요 · 열리는 날 한 번만 알려 드릴게요');
+    } catch (x) { err.textContent = x.message; btn.disabled = false; }
+  };
+  document.body.appendChild(ov);
+  setTimeout(() => (ov.querySelector('#shE') || ov.querySelector('.sheet-skip')).focus(), 30);
 }
 
 /* ── 인주 도장 SVG (C-22) ── */
@@ -288,7 +507,15 @@ export function renderChrome(active) {
         <li>절기 — 태양 황경 직접 계산 (입춘 315°)</li>
         <li>일주 — 율리우스 적일 (JDN+49) % 60</li>
         <li>시주 — 오자둔 · 조자시 기준</li></ul></div>
-      <div class="foot-note"><span>© 여덟글자 · yeodeol.kr</span><span>생년월일과 일기는 서버로 전송되지 않습니다 · 방문 통계 외에는 아무것도 수집하지 않아요</span></div>
+      <div class="foot-legal">
+      <div class="foot-links">
+        <a href="/about">서비스 소개</a><a href="/notice">공지사항</a><a href="/contact">문의하기</a>
+        <a href="/terms">이용약관</a><a href="/privacy"><b>개인정보처리방침</b></a>
+        <button type="button" id="ftExport">내 기록 백업</button>
+      </div>
+      <div class="foot-biz" id="footBiz"><span>호스팅 Cloudflare, Inc.</span></div>
+      <div class="foot-note"><span>© 여덟글자 · yeodeol.kr</span><span>생년월일·감정 기록·일기는 이 기기에만 저장돼요 · 서버에는 익명 방문 숫자와, 직접 보내 주신 문의·알림 신청만 남아요</span></div>
+      </div>
     </div>`;
   const fx = document.getElementById('ftExport');
   if (fx) fx.onclick = () => exportAll();
@@ -367,6 +594,7 @@ export async function drawShareCard(canvas, { t, theme, mine }) {
 export function downloadCanvas(canvas, name) {
   const a = document.createElement('a');
   a.download = name; a.href = canvas.toDataURL('image/png'); a.click();
+  trackEvent('card_saved');
 }
 
 /* ── 공통 초기화 ───────────────────── */
@@ -375,6 +603,9 @@ export function boot(active) {
   const ctx = getToday();
   applyTheme(ctx.theme);
   renderChrome(active);
+  trackPage();
+  loadConfig().then(cfg => { if (!cfg) return; renderBanner(cfg); renderBiz(cfg); fillCfg(cfg); });
   return ctx;
 }
+try { window.addEventListener('appinstalled', () => trackEvent('install')); } catch {}
 export { WEATHER, ELEMENTS, ELEMENTS_HANJA, dateKey, fmt, STEMS };

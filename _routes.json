@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "description": "정적 파일은 함수를 거치지 않고 바로 나갑니다. 페이지·API만 함수(_middleware, /api)를 지납니다.",
+  "include": ["/*"],
+  "exclude": ["/assets/*", "/manifest.json", "/robots.txt", "/sitemap.xml", "/rss.xml"]
+}

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>공지사항 — 여덟글자</title>
+<meta name="description" content="여덟글자의 새 소식과 안내. 새 기능, 리포트 오픈, 점검 소식을 이곳에 올려요.">
+<link rel="canonical" href="https://yeodeol.kr/notice">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/icons/favicon-64.png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#35714F">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="여덟글자">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="공지사항 — 여덟글자">
+<meta property="og:description" content="여덟글자의 새 소식과 안내. 새 기능, 리포트 오픈, 점검 소식을 이곳에 올려요.">
+<meta property="og:url" content="https://yeodeol.kr/notice">
+<meta property="og:image" content="https://yeodeol.kr/assets/img/og-home.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/assets/css/style.css?v=20261117b">
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="site-head"></header>
+
+<main class="wrap" id="main">
+  <section class="doc">
+    <header class="doc-head">
+      <p class="kicker">공지사항</p>
+      <h1>여덟글자의 새 소식</h1>
+      <p>새 기능, 리포트가 열리는 날, 점검 안내를 여기에 올려요.</p>
+    </header>
+    <div class="notice-list" id="list" aria-live="polite">
+      <p class="sec-note" style="padding:22px 4px;">공지를 불러오는 중이에요.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-foot"></footer>
+<nav class="tabbar" aria-label="하단 메뉴"></nav>
+
+<script type="module">
+import { boot } from '/assets/js/app.js?v=20261117b';
+boot(null);
+const box = document.getElementById('list');
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const safe = v => /^(\/|https:\/\/)/.test(String(v || '')) ? String(v) : '';
+fetch('/api/config').then(r => r.ok ? r.json() : null).catch(() => null).then(cfg => {
+  const list = cfg && cfg.notices || [];
+  if (!list.length) { box.innerHTML = '<p class="sec-note" style="padding:22px 4px;">아직 올라온 공지가 없어요. 새 소식이 생기면 이 자리에 먼저 알려 드릴게요.</p>'; return; }
+  const want = Number(location.hash.slice(1));
+  box.innerHTML = list.map((n, i) => `<details class="notice-item" id="${n.id}" ${(want ? want === n.id : i === 0) ? 'open' : ''}>
+    <summary>${n.pinned ? '<span class="pin">고정</span>' : ''}<b>${esc(n.title)}</b><span class="d">${esc((n.date || '').replace(/-/g, '.'))}</span></summary>
+    <div class="nbody"></div>
+    ${safe(n.link) ? `<p style="padding:0 4px 20px;margin:0;"><a class="btn btn-soft btn-sm" href="${esc(safe(n.link))}">${esc(n.label || '자세히 보기')} →</a></p>` : ''}
+  </details>`).join('');
+  list.forEach(n => { const el = document.getElementById(String(n.id)); if (el) el.querySelector('.nbody').textContent = n.body || ''; });
+});
+</script>
+</body>
+</html>

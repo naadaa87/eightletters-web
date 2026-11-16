@@ -1,6 +1,6 @@
 /* 여덟글자 신규 기능 문안 — content2.js (기획서 3부 기반)
    규칙: 점수 없음 · 좋다/나쁘다 없음 · 용어는 그 자리에서 풀기 · 끝은 이번 주의 한 가지 */
-import { TEN_GODS } from './saju.js';
+import { TEN_GODS } from '/assets/js/saju.js?v=20261117b';
 
 /* ── A-01 기상 다섯 상태 ── */
 export const WX_STATE = {

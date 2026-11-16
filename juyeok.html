@@ -24,7 +24,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/style.css?v=20261117b">
 </head>
 <body>
 <a class="skip" href="#main">본문으로 건너뛰기</a>
@@ -54,9 +54,9 @@
 <nav class="tabbar" aria-label="하단 메뉴"></nav>
 
 <script type="module">
-import { boot } from '/assets/js/app.js';
-import { dayPillarIndex } from '/assets/js/saju.js';
-import { TRIGRAM, HEX, HEX_ACTION } from '/assets/js/content3.js';
+import { boot } from '/assets/js/app.js?v=20261117b';
+import { dayPillarIndex } from '/assets/js/saju.js?v=20261117b';
+import { TRIGRAM, HEX, HEX_ACTION } from '/assets/js/content3.js?v=20261117b';
 const ctx = boot(null);
 const { t } = ctx;
 document.getElementById('jDate').textContent = `${t.y}년 ${t.mo}월 ${t.d}일 · ${t.gz}일`;

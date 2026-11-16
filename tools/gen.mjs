@@ -75,6 +75,7 @@ const seal2 = (a, b) => `<svg width="92" height="92" viewBox="0 0 100 100" class
 mkdirSync('../ilju', { recursive: true });
 const iljuLinks = [];
 const urls = [];
+const feed = []; // RSS 항목
 
 for (let i = 0; i < 60; i++) {
   const s = i % 10, b = i % 12;
@@ -89,6 +90,8 @@ for (let i = 0; i < 60; i++) {
   const path = `/ilju/${slug}`;
   iljuLinks.push({ gz, kr, slug, s, b });
   urls.push(path);
+  feed.push({ title: `${kr}일주 — ${alias}`, path, cat: '일주',
+    text: `${kr}일주(${gz})는 ${el}(${EL_H[STEM_EL[s]]})의 ${SP.noun}가 ${BP.animal}의 자리에 앉은 날이에요. 자주 하는 것 — ${SP.t1} ${SP.t2} ${BP.t} 오해받기 쉬운 지점 — ${BP.mis} 이 글자를 잘 쓰는 법 — ${SP.use}` });
 
   const related = [1, 2, 3].map(k => {
     const j = (i + k * 12) % 60; // 같은 지지 계열 대신 같은 일간의 다른 일지
@@ -193,6 +196,8 @@ TERM_ORDER.forEach((name, i) => {
   const path = `/jeolgi/${slug}`;
   urls.push(path);
   const se = seasonOf(i);
+  feed.push({ title: `${name}(${TERM_HANJA[name]}) — ${TERM_MEANING[name]}`, path, cat: '절기',
+    text: `${name}은 ${TERM_MEANING[name]}. ${SEASON_TXT[se]} 이 보름을 지나는 법 — ${TERM_EXTRA[name]}` });
   const desc = `${name}(${TERM_HANJA[name]}) — ${TERM_MEANING[name]}. 이 절기의 뜻과 이 보름을 지나는 법.`;
   const jsonld = `<script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Article","headline":"${name} — ${TERM_MEANING[name]}","inLanguage":"ko","author":{"@type":"Organization","name":"여덟글자"},"publisher":{"@type":"Organization","name":"여덟글자"},"mainEntityOfPage":"${SITE}${path}"}
@@ -256,13 +261,45 @@ writeFileSync('../jeolgi.html',
 urls.push('/jeolgi');
 
 /* ═══ sitemap ═══ */
-const core = ['/', '/saju', '/gunghap', '/time', '/record',
-  '/tarot', '/calendar', '/dict', '/type', '/juyeok', '/report', '/charm'];
+const TODAY = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+const core = ['/', '/saju', '/gunghap', '/time', '/record', '/report', '/charm',
+  '/tarot', '/calendar', '/dict', '/type', '/juyeok', '/about', '/notice', '/contact', '/terms', '/privacy'];
 const all = [...core, ...urls.sort()];
+const prio = u => u === '/' ? '1.0' : ['/terms', '/privacy', '/contact'].includes(u) ? '0.3' : core.includes(u) ? '0.8' : '0.6';
+const freq = u => u === '/' ? 'daily' : u === '/notice' ? 'weekly' : ['/terms', '/privacy'].includes(u) ? 'yearly' : 'monthly';
 const sm = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${all.map(u => `  <url><loc>${SITE}${u}</loc><changefreq>${u === '/' ? 'daily' : 'weekly'}</changefreq><priority>${u === '/' ? '1.0' : core.includes(u) ? '0.8' : '0.6'}</priority></url>`).join('\n')}
+${all.map(u => `  <url><loc>${SITE}${u}</loc><lastmod>${TODAY}</lastmod><changefreq>${freq(u)}</changefreq><priority>${prio(u)}</priority></url>`).join('\n')}
 </urlset>
 `;
 writeFileSync('../sitemap.xml', sm);
-console.log(`일주 60 + 절기 24 + 목록 2 생성 · sitemap ${all.length}개 URL`);
+
+/* ═══ RSS — 네이버 서치어드바이저 · 피드 리더용 (본문 요약 포함) ═══ */
+const xml = v => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const PUB = new Date('2026-11-17T09:00:00+09:00');
+const items = feed.map((f, i) => {
+  const d = new Date(PUB.getTime() - i * 60e3); // 같은 시각이 겹치지 않게 1분씩
+  return `  <item>
+    <title>${xml(f.title)}</title>
+    <link>${SITE}${f.path}</link>
+    <guid isPermaLink="true">${SITE}${f.path}</guid>
+    <category>${f.cat}</category>
+    <pubDate>${d.toUTCString()}</pubDate>
+    <description>${xml(f.text)}</description>
+  </item>`;
+});
+const rss = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>여덟글자 — 일주와 절기 이야기</title>
+  <link>${SITE}/</link>
+  <atom:link href="${SITE}/rss.xml" rel="self" type="application/rss+xml"/>
+  <description>점수도 등급도 없이 읽는 일주 예순 편과 절기 스물네 편</description>
+  <language>ko</language>
+  <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+${items.join('\n')}
+</channel>
+</rss>
+`;
+writeFileSync('../rss.xml', rss);
+console.log(`일주 60 + 절기 24 + 목록 2 생성 · sitemap ${all.length}개 URL · rss ${items.length}개 항목`);

@@ -22,7 +22,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/style.css?v=20261117b">
 </head>
 <body>
 <a class="skip" href="#main">본문으로 건너뛰기</a>
@@ -93,13 +93,13 @@
 
     <!-- C-02 쓰는 법과 안 쓸 때 -->
     <section class="block" id="deep" style="margin-top:20px;">
-      <div class="sec-head"><h2>쓰는 법과 안 쓸 때</h2><span class="more">강약은 좋고 나쁨이 아니라 사용법이에요 · 4,900원</span></div>
+      <div class="sec-head"><h2>쓰는 법과 안 쓸 때</h2><span class="more">강약은 좋고 나쁨이 아니라 사용법이에요 · <span data-price="use">4,900원</span></span></div>
       <div class="panel">
         <div id="c02Free"></div>
         <div class="fold" style="margin-top:16px;">
           <div class="fold-titles" id="c02Locked"></div>
           <div class="fold-cta">
-            <button class="btn btn-ghost btn-sm pay-btn">이어서 읽기 · 4,900원</button>
+            <button class="btn btn-ghost btn-sm pay-btn" data-p="use">이어서 읽기 · 4,900원</button>
             <span class="fold-note">가장 강한 하나까지 읽으셨어요 · 여기부터 아홉 자리가 더 있어요 · 광고는 없어요</span>
           </div>
         </div>
@@ -108,7 +108,7 @@
 
     <!-- C-05 몸이 보내는 신호 -->
     <section class="block">
-      <div class="sec-head"><h2>몸이 보내는 신호</h2><span class="more">진단은 무료 · 보충 방향 상세 2,900원</span></div>
+      <div class="sec-head"><h2>몸이 보내는 신호</h2><span class="more">진단은 무료 · 보충 방향 상세 <span data-price="body">2,900원</span></span></div>
       <div class="panel">
         <p class="sec-note" style="margin:0 0 12px;">의학적 진단이 아니에요. 몸에 이상이 느껴지면 병원에서 확인하세요.</p>
         <div id="c05Body"></div>
@@ -135,11 +135,11 @@
 <nav class="tabbar" aria-label="하단 메뉴"></nav>
 
 <script type="module">
-import { boot, store, getProfile, toast, downloadCanvas, copyShareLink, wirePayButtons, STEMS } from '/assets/js/app.js';
-import { fourPillars, tenGod, TEN_GODS, fmt, STEMS_KR, BRANCHES, BRANCHES_KR, ELEMENTS, ELEMENTS_HANJA } from '/assets/js/saju.js';
-import { STEM_DEF, EMPTY_EL_TIP, TEN_GOD_DAY, EL_THEME } from '/assets/js/content.js';
-import { C02, C05_OVER, C05_LACK } from '/assets/js/content2.js';
-import { typeName, branchSeason, SEASON4 } from '/assets/js/content3.js';
+import { boot, store, getProfile, toast, downloadCanvas, copyShareLink, wirePayButtons, STEMS } from '/assets/js/app.js?v=20261117b';
+import { fourPillars, tenGod, TEN_GODS, fmt, STEMS_KR, BRANCHES, BRANCHES_KR, ELEMENTS, ELEMENTS_HANJA } from '/assets/js/saju.js?v=20261117b';
+import { STEM_DEF, EMPTY_EL_TIP, TEN_GOD_DAY, EL_THEME } from '/assets/js/content.js?v=20261117b';
+import { C02, C05_OVER, C05_LACK } from '/assets/js/content2.js?v=20261117b';
+import { typeName, branchSeason, SEASON4 } from '/assets/js/content3.js?v=20261117b';
 
 const ctx = boot('saju');
 const { t, theme } = ctx;
@@ -286,7 +286,7 @@ function render(){
         <div class="fold-row"><b>물건 셋</b><span>부족한 기운을 부르는 성질의 것들</span></div>
       </div>
       <div class="fold-cta">
-        <button class="btn btn-ghost btn-sm pay-btn">이어서 읽기 · 2,900원</button>
+        <button class="btn btn-ghost btn-sm pay-btn" data-p="body">이어서 읽기 · 2,900원</button>
         <span class="fold-note">진단까지는 무료예요 · 한 번 결제하면 계속 볼 수 있어요</span>
       </div>
     </div>`;

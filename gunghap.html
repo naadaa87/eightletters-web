@@ -22,7 +22,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/style.css?v=20261117b">
 </head>
 <body>
 <a class="skip" href="#main">본문으로 건너뛰기</a>
@@ -153,13 +153,13 @@
 
   <!-- 관계 설명서 (A-02) -->
   <section class="block">
-    <div class="sec-head"><h2>관계 설명서</h2><span class="more">네 층으로 읽는 정밀 궁합 · 5,900원</span></div>
+    <div class="sec-head"><h2>관계 설명서</h2><span class="more">네 층으로 읽는 정밀 궁합 · <span data-price="rel">5,900원</span></span></div>
     <div id="layerList"></div>
   </section>
 
   <!-- 말투 사전 (A-03) -->
   <section class="block">
-    <div class="sec-head"><h2>말투 사전</h2><span class="more">내 말이 저 사람에게 어떻게 들리는가 · 3,900원</span></div>
+    <div class="sec-head"><h2>말투 사전</h2><span class="more">내 말이 저 사람에게 어떻게 들리는가 · <span data-price="talk">3,900원</span></span></div>
     <p class="sec-note">열 가지 상황 중 두 가지를 먼저 열어 두었어요.</p>
     <div class="panel">
       <div class="lens-pills" id="maltuTabs" style="margin-bottom:14px;"></div>
@@ -167,7 +167,7 @@
       <div class="fold" style="margin-top:16px;">
         <div class="fold-titles" id="maltuLocked"></div>
         <div class="fold-cta">
-          <button class="btn btn-ghost btn-sm pay-btn">이어서 읽기 · 3,900원</button>
+          <button class="btn btn-ghost btn-sm pay-btn" data-p="talk">이어서 읽기 · 3,900원</button>
           <span class="fold-note">한 번 결제하면 계속 볼 수 있어요 · 광고는 없어요</span>
         </div>
       </div>
@@ -198,13 +198,13 @@
 
 <script type="module">
 import { boot, store, getProfile, getRelations, saveRelation, removeRelation, wirePayButtons,
-         shareLink, copyShareLink, toast, downloadCanvas, WEATHER, dateKey } from '/assets/js/app.js';
+         shareLink, copyShareLink, toast, downloadCanvas, WEATHER, dateKey } from '/assets/js/app.js?v=20261117b';
 import { fourPillars, tenGod, TEN_GODS, tenGodDirection, coupleWeather, branchRelation,
          REL_KIND, REL_HANJA, stemRelation, elementComplement, fmt, STEMS, BRANCHES,
-         STEMS_KR, BRANCHES_KR, ELEMENTS, ELEMENTS_HANJA, todayInfo } from '/assets/js/saju.js';
-import { WX_STATE, LENS, LENS_LINE, LAYERS, MALTU_FREE, MALTU_SITUATIONS } from '/assets/js/content2.js';
-import { L2_TEXT, L34_PREVIEW } from '/assets/js/content3.js';
-import { TEN_GOD_DAY, EL_THEME } from '/assets/js/content.js';
+         STEMS_KR, BRANCHES_KR, ELEMENTS, ELEMENTS_HANJA, todayInfo } from '/assets/js/saju.js?v=20261117b';
+import { WX_STATE, LENS, LENS_LINE, LAYERS, MALTU_FREE, MALTU_SITUATIONS } from '/assets/js/content2.js?v=20261117b';
+import { L2_TEXT, L34_PREVIEW } from '/assets/js/content3.js?v=20261117b';
+import { TEN_GOD_DAY, EL_THEME } from '/assets/js/content.js?v=20261117b';
 
 const ctx = boot('gh');
 const { t, theme, mine } = ctx;
@@ -397,7 +397,7 @@ function renderLayers(w, yfp, rel){
       <p style="font-size:14px;line-height:1.9;margin:8px 0 6px;"><b>${L2[0]}</b></p>
       <p style="font-size:14px;line-height:1.9;margin:0;">${L2[1]}</p>
       <p class="gyeol-action" style="margin-top:10px;">이번 주에 한 가지 — ${L2[2]}</p>
-      <p class="sec-note" style="margin-top:12px;">2층까지 읽으셨어요. 결제가 열리기 전까지 두 층을 무료로 열어 두었어요.</p>
+      <p class="sec-note" style="margin-top:12px;">2층까지 읽으셨어요. 두 층은 언제나 결제 전에 먼저 열어 드려요.</p>
     </div>
     <div class="fold">
       <div class="fold-titles">
@@ -405,7 +405,7 @@ function renderLayers(w, yfp, rel){
         <div class="fold-row"><b>4층 — ${LAYERS[3].title}</b><span>이 사람 옆에서 채워지는 기운과…</span></div>
       </div>
       <div class="fold-cta">
-        <button class="btn btn-ghost pay-btn" data-p="관계 설명서">이어서 읽기 · 5,900원</button>
+        <button class="btn btn-ghost pay-btn" data-p="rel">이어서 읽기 · 5,900원</button>
         <span class="fold-note">여기부터 두 층이 더 있어요 · 한 번 결제하면 계속 볼 수 있어요 · 광고는 없어요</span>
       </div>
     </div>`;

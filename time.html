@@ -22,7 +22,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/style.css?v=20261117b">
 </head>
 <body>
 <a class="skip" href="#main">본문으로 건너뛰기</a>
@@ -73,8 +73,9 @@
   <section class="block" style="margin-top:24px;">
     <div class="sec-head">
       <h2 id="yearTitle">올해의 지도</h2>
-      <span class="more">읽는 책이 아니라 걸어 두는 지도예요 · 12,900원</span>
+      <span class="more">읽는 책이 아니라 걸어 두는 지도예요 · <span data-price="year">12,900원</span></span>
     </div>
+    <div class="year-switch" id="yearSwitch" role="group" aria-label="연도 고르기" hidden></div>
     <div class="panel">
       <p class="serif" id="yearLine" style="font-size:18px;margin:0 0 4px;"></p>
       <p class="p-sub" id="yearSub"></p>
@@ -95,7 +96,7 @@
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
         <button class="btn btn-primary btn-sm" id="btnYearCard">올해의 한 문장 카드 저장</button>
         <button class="btn btn-ghost btn-sm" id="btnYearShare">링크로 공유</button>
-        <button class="btn btn-soft btn-sm pay-btn">열두 달 전부 펼치기 · 12,900원</button>
+        <button class="btn btn-soft btn-sm pay-btn" data-p="year">열두 달 전부 펼치기 · 12,900원</button>
       </div>
       <canvas id="yearCanvas" width="1080" height="1080" hidden></canvas>
     </div>
@@ -103,7 +104,7 @@
 
   <!-- 이달의 결 (B-02) + 지난달 되짚기 (B-06) -->
   <section class="block">
-    <div class="sec-head"><h2>이달의 결</h2><span class="more">매월 1일에 새로 도착해요 · 구독 월 4,900원</span></div>
+    <div class="sec-head"><h2>이달의 결</h2><span class="more">매월 1일에 새로 도착해요 · 구독 <span data-price="monthly">월 4,900원</span></span></div>
     <div class="duo">
       <div class="panel" id="monthPanel"></div>
       <div class="panel" id="reviewPanel"></div>
@@ -112,7 +113,7 @@
 
   <!-- 열 해의 강 (B-03) -->
   <section class="block">
-    <div class="sec-head"><h2>열 해의 강</h2><span class="more">대운 — 지금 어느 구간에 서 있는가 · 7,900원</span></div>
+    <div class="sec-head"><h2>열 해의 강</h2><span class="more">대운 — 지금 어느 구간에 서 있는가 · <span data-price="daeun">7,900원</span></span></div>
     <div class="panel">
       <p class="p-sub" id="daeunSub"></p>
       <div class="river-wrap"><div class="river" id="river"></div></div>
@@ -120,7 +121,7 @@
       <div class="fold" style="margin-top:16px;">
         <div class="fold-titles" id="daeunLocked"></div>
         <div class="fold-cta">
-          <button class="btn btn-ghost btn-sm pay-btn">이어서 읽기 · 7,900원</button>
+          <button class="btn btn-ghost btn-sm pay-btn" data-p="daeun">이어서 읽기 · 7,900원</button>
           <span class="fold-note">지난 구간의 해석이 맞는지 먼저 확인해 보세요 · 그게 이 리포트의 자신감이에요</span>
         </div>
       </div>
@@ -139,14 +140,14 @@
     <div class="sec-head"><h2>이용권</h2><span class="more">언제든 해지할 수 있고, 받은 리포트는 남아요</span></div>
     <div class="rep-grid">
       <div class="rep"><h4>낱장으로</h4>
-        <p>말투 사전 3,900원 · 관계 설명서 5,900원 · 열 해의 강 7,900원 · 올해의 지도 12,900원. 한 번 결제하면 계속 볼 수 있어요.</p>
-        <span class="meta">첫 장은 언제나 무료 · 결제는 11월에 열어요</span></div>
-      <div class="rep free"><h4>신년 묶음 · 22,900원</h4>
-        <p>올해의 지도 + 돈과 나의 거리 + 나에게 맞는 부적 + 이달의 결 두 달. 낱장 합계 32,500원.</p>
-        <span class="meta">결제는 11월에 열어요 · 지금은 예고만</span></div>
-      <div class="rep"><h4>구독 · 월 4,900원</h4>
+        <p>말투 사전 <span data-price="talk">3,900원</span> · 관계 설명서 <span data-price="rel">5,900원</span> · 열 해의 강 <span data-price="daeun">7,900원</span> · 올해의 지도 <span data-price="year">12,900원</span>. 한 번 결제하면 계속 볼 수 있어요.</p>
+        <span class="meta">첫 장은 언제나 무료 · <a href="/report" style="color:var(--brand-deep);">리포트 전체 보기</a></span></div>
+      <div class="rep free"><h4>신년 묶음 · <span data-price="newyear">22,900원</span></h4>
+        <p>올해의 지도 + 몸이 보내는 신호 + 나에게 맞는 부적 + 이달의 결 두 달. 낱장으로 사면 29,500원이에요.</p>
+        <span class="meta"><button class="pay-btn" data-p="newyear" data-keep="1" style="color:var(--brand-deep);font-weight:700;font-size:inherit;">열리면 알려 받기 →</button></span></div>
+      <div class="rep"><h4>구독 · <span data-price="monthly">월 4,900원</span></h4>
         <p>이달의 결, 나의 좋은 날 30일, 오늘 우리 주간 보기, 상대 저장 무제한, 리포트 보관함.</p>
-        <span class="meta">연간 39,000원에는 올해의 지도 포함 · 결제는 11월에 열어요</span></div>
+        <span class="meta">연간 39,000원에는 올해의 지도 포함 · 언제든 해지</span></div>
     </div>
   </section>
 
@@ -157,11 +158,11 @@
 <nav class="tabbar" aria-label="하단 메뉴"></nav>
 
 <script type="module">
-import { boot, store, getMoods, copyShareLink, downloadCanvas, toast, wirePayButtons, WEATHER, dateKey } from '/assets/js/app.js';
+import { boot, store, getMoods, copyShareLink, downloadCanvas, toast, wirePayButtons, WEATHER, dateKey } from '/assets/js/app.js?v=20261117b';
 import { yearMonths, tenGod, TEN_GODS, daeun, termsOfYear, seasonElOfTerm, termInfo,
-         fmt, STEMS, BRANCHES, STEMS_KR, BRANCHES_KR, ELEMENTS, ELEMENTS_HANJA } from '/assets/js/saju.js';
-import { MONTH_NAME, DAEUN_LINE, TERM_MEANING, SEASON_REL, YEAR_LINE } from '/assets/js/content2.js';
-import { EL_THEME } from '/assets/js/content.js';
+         fmt, STEMS, BRANCHES, STEMS_KR, BRANCHES_KR, ELEMENTS, ELEMENTS_HANJA } from '/assets/js/saju.js?v=20261117b';
+import { MONTH_NAME, DAEUN_LINE, TERM_MEANING, SEASON_REL, YEAR_LINE } from '/assets/js/content2.js?v=20261117b';
+import { EL_THEME } from '/assets/js/content.js?v=20261117b';
 
 const ctx = boot('time');
 const { t, theme, mine } = ctx;
@@ -172,7 +173,7 @@ else { document.getElementById('timeIntro').hidden = true; document.getElementBy
 
 /* 인트로용 · 이번 절기 편지 공개분 (개인화 없이) */
 function introLetter(){
-  import('/assets/js/content3.js').then(C3 => {
+  import('/assets/js/content3.js?v=20261117b').then(C3 => {
     const cur = t.term.current;
     const m = (TERM_MEANING[cur.name] || '');
     document.getElementById('introLetterBody').innerHTML =
@@ -184,6 +185,19 @@ function introLetter(){
 function init(){
   const sajuYear = t.term ? (t.mo === 1 || (t.mo === 2 && t.d < 4) ? t.y - 1 : t.y) : t.y;
   renderYear(sajuYear);
+  /* 신년 시즌(10월 15일 ~ 입춘 전)에는 다가오는 해의 지도를 미리 펼쳐 볼 수 있어요 */
+  const season = (t.mo === 10 && t.d >= 15) || t.mo >= 11 || t.mo === 1 || (t.mo === 2 && t.d < 4);
+  if (season) {
+    const sw = document.getElementById('yearSwitch');
+    const yrs = [sajuYear, sajuYear + 1];
+    const paintSw = cur => {
+      sw.innerHTML = yrs.map(y => { const ym = yearMonths(y);
+        return `<button type="button" data-y="${y}" aria-pressed="${y === cur}">${y === sajuYear ? '올해' : '다가오는 해'} ${y} ${fmt.gz(ym.yearStem, ym.yearBranch)}</button>`; }).join('');
+      sw.querySelectorAll('button').forEach(b => b.onclick = () => { const y = Number(b.dataset.y); renderYear(y, sajuYear); paintSw(y); });
+    };
+    sw.hidden = false;
+    paintSw(sajuYear);
+  }
   renderMonth();
   renderReview();
   renderDaeun();
@@ -192,14 +206,15 @@ function init(){
 }
 
 /* ── 올해의 지도 ── */
-function renderYear(sy){
+function renderYear(sy, baseYear = sy){
   const ym = yearMonths(sy);
+  const PLAN_KEY = sy === baseYear ? 'plans' : `plans_${sy}`;
   const yearTg = tenGod(mine.dayStem, ym.yearStem);
   document.getElementById('yearTitle').textContent = `${sy}년 — ${fmt.gz(ym.yearStem, ym.yearBranch)}의 지도`;
   document.getElementById('yearLine').textContent = YEAR_LINE[yearTg];
   document.getElementById('yearSub').textContent = `세운 ${fmt.gz(ym.yearStem,ym.yearBranch)}이 당신의 일간 ${STEMS[mine.dayStem]}에게 ${TEN_GODS[yearTg]}으로 들어와요 · 입춘부터 다음 입춘까지 열두 달이에요`;
 
-  const plans = store.get('plans', {});
+  const plans = store.get(PLAN_KEY, {});
   const MO_LABEL = ['2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월','1월'];
   const nowIdx = (() => { // 현재 절기월 인덱스 (인월=0)
     const lamMonth = t.term ? null : null;
@@ -220,7 +235,7 @@ function renderYear(sy){
     </div>`;
   }).join('');
   document.querySelectorAll('.mmemo').forEach(ta => ta.onchange = () => {
-    const p = store.get('plans', {}); p[ta.dataset.i] = ta.value.trim(); store.set('plans', p);
+    const p = store.get(PLAN_KEY, {}); p[ta.dataset.i] = ta.value.trim(); store.set(PLAN_KEY, p);
     toast('지도 위에 적어 두었어요');
   });
 
@@ -268,7 +283,7 @@ function drawYearCard(c){
 function renderMonth(){
   const mIdx = ((t.term.current ? 0 : 0), 0);
   // 이번 절기월 월건: monthPillar from todayInfo? 간단히 yearMonths + 현재 λ 기반은 saju에 있음 — termInfo 사용
-  import('/assets/js/saju.js').then(S => {
+  import('/assets/js/saju.js?v=20261117b').then(S => {
     const mp = S.monthPillarIndex(t.y, t.mo, t.d, 12);
     const tg = tenGod(mine.dayStem, mp.stem);
     const [nm, line, fit] = MONTH_NAME[tg];
@@ -282,7 +297,7 @@ function renderMonth(){
           <div class="fold-row"><b>좋은 날 달력</b><span>이번 달, 당신 기준의 날들에 점이 찍혀요</span></div>
         </div>
         <div class="fold-cta">
-          <button class="btn btn-ghost btn-sm pay-btn">구독으로 이어 읽기 · 월 4,900원</button>
+          <button class="btn btn-ghost btn-sm pay-btn" data-p="monthly">구독으로 이어 읽기 · 월 4,900원</button>
           <span class="fold-note">매월 1일 새로 도착해요 · 언제든 해지 · 받은 것은 남아요</span>
         </div>
       </div>`;
@@ -304,7 +319,7 @@ function renderReview(){
     return;
   }
   // 일진 오행별 평균 기분
-  import('/assets/js/saju.js').then(S => {
+  import('/assets/js/saju.js?v=20261117b').then(S => {
     const byEl = [[],[],[],[],[]];
     for (const [k, v] of entries) {
       const [yy, mm, dd] = k.split('-').map(Number);
@@ -374,7 +389,7 @@ function renderTermLetter(sy){
   const meaning = TERM_MEANING[cur.name] || '';
   const sEl = seasonElOfTerm((Object.keys(TERM_MEANING).indexOf(cur.name) + 21) % 24 * 15); // fallback
   // 계절 오행: 현재 절기 황경으로
-  import('/assets/js/saju.js').then(S => {
+  import('/assets/js/saju.js?v=20261117b').then(S => {
     const lonIdx = S.TERM_NAMES.indexOf(cur.name) * 15 % 360;
     const se = seasonElOfTerm(lonIdx);
     const myEl = STEM_EL[mine.dayStem];
