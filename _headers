@@ -21,7 +21,7 @@
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-store
   X-Frame-Options: DENY
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://choisijun.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://choisijun.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'
 
 /admin
   X-Robots-Tag: noindex, nofollow
