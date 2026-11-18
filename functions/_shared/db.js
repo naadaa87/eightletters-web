@@ -2,7 +2,7 @@
    표는 첫 요청 때 스스로 만듭니다. 대시보드에서 SQL을 붙여 넣을 필요가 없습니다.
    스키마를 바꿀 때는 SCHEMA_VERSION을 올리고 MIGRATIONS 끝에 문장을 덧붙이세요. */
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 const TABLES = [
   `CREATE TABLE IF NOT EXISTS settings (
@@ -45,6 +45,9 @@ const TABLES = [
      summary TEXT, sort INTEGER NOT NULL DEFAULT 0, updated_at TEXT)`,
   `CREATE TABLE IF NOT EXISTS rate (
      k TEXT PRIMARY KEY, n INTEGER NOT NULL, reset_at INTEGER NOT NULL)`,
+  /* KPI 목표 — 관리자 > KPI에서 이달의 목표를 적어 두면 달성률이 함께 보입니다 */
+  `CREATE TABLE IF NOT EXISTS kpi_goals (
+     metric TEXT PRIMARY KEY, target INTEGER NOT NULL DEFAULT 0, updated_at TEXT, updated_by TEXT)`,
 ];
 
 /* 상품 — 화면에 적힌 가격과 이름을 그대로 옮겼습니다. 관리자 > 상품·가격에서 바꿉니다. */
@@ -118,6 +121,13 @@ export function kstDay(offsetDays = 0, base = Date.now()) {
   return new Date(base + 9 * 3600e3 + offsetDays * 86400e3).toISOString().slice(0, 10);
 }
 export const nowIso = () => new Date().toISOString();
+export const kstMonth = (base = Date.now()) => kstDay(0, base).slice(0, 7);
+
+/* 날짜별 숫자 더하기 — 1씩 세는 값과 초·퍼센트처럼 합계를 쌓는 값 모두 씁니다 */
+export function bumpStat(db, day, kind, key, n = 1) {
+  return db.prepare(`INSERT INTO stats_daily(day,kind,key,n) VALUES(?1,?2,?3,?4)
+      ON CONFLICT(day,kind,key) DO UPDATE SET n = n + ?4`).bind(day, kind, key, n);
+}
 
 /* 오래된 기록 정리 — 개인정보처리방침의 보유 기간과 맞춥니다 */
 export async function purge(db) {

@@ -2,7 +2,7 @@
    개인을 알아볼 수 있는 값은 문의와 출시 알림에서 '본인이 적어 보낸 것'만 저장합니다.
    방문 통계는 날짜별 숫자 합계뿐이고, IP·쿠키·기기 식별자를 남기지 않습니다. */
 import { json, readBody, fail, clean, emailOk, isBot, limit, sha256hex, clientIp } from './http.js';
-import { getSettings, kstDay, nowIso, salt } from './db.js';
+import { getSettings, kstDay, nowIso, salt, bumpStat } from './db.js';
 
 const PUBLIC_PREFIX = ['biz.', 'cs.', 'privacy.', 'legal.', 'site.'];
 
@@ -58,12 +58,18 @@ export async function purgeConfigCache(request) {
 }
 
 /* ── 익명 사용 통계 ──
-   p: 경로 · u: 오늘 이 기기의 첫 방문 · n: 이 기기의 첫 방문 · r: 들어온 곳(도메인) · d: 기기 종류 · k: 기능 이벤트 */
+   p: 경로 · u: 오늘 이 기기의 첫 방문 · n: 이 기기의 첫 방문 · r: 들어온 곳(도메인) · d: 기기 종류 · k: 기능 이벤트
+   s: 한 번의 방문(30분) 시작 · d2: 그 방문에서 두 번째 화면을 열었음
+   q: 화면을 떠나며 알려 주는 머문 시간의 경로 · t: 머문 초 · sd: 읽어 내린 비율(%)
+   머문 시간과 읽은 비율은 '합계'와 '잰 횟수'를 따로 쌓아 두고, 보여 줄 때 나눕니다.
+   어느 숫자도 사람을 구별하지 않습니다. 날짜별 합계 한 줄로만 남습니다. */
 const EVENTS = new Set([
   'saju_made', 'mood_saved', 'note_saved', 'plan_saved', 'action_done', 'relation_saved',
   'card_saved', 'link_shared', 'invite_opened', 'backup_export', 'backup_import',
-  'wish', 'notify_signup', 'inquiry_sent', 'buy_click', 'install',
+  'wish', 'notify_signup', 'inquiry_sent', 'buy_click', 'install', 'day_kept',
 ]);
+const DWELL_MAX = 1800;        // 30분 넘게 켜 둔 화면은 30분으로 봅니다
+const int = (v, lo, hi) => { const n = Math.round(Number(v)); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : null; };
 const PRODUCT_RE = /^[a-z]{2,12}$/;
 const PATH_RE = /^\/[a-z0-9\-\/]{0,60}$/;
 
@@ -87,13 +93,16 @@ export async function postEvent(ctx) {
   const b = await readBody(request, 2048);
   const db = env.DB;
   const day = kstDay();
-  const up = (kind, key) => db.prepare(`INSERT INTO stats_daily(day,kind,key,n) VALUES(?1,?2,?3,1)
-      ON CONFLICT(day,kind,key) DO UPDATE SET n = n + 1`).bind(day, kind, key);
+  const up = (kind, key) => bumpStat(db, day, kind, key, 1);
+  const add = (kind, key, n) => bumpStat(db, day, kind, key, n);
   const stmts = [];
+  const normPath = v => {
+    const p = String(v).toLowerCase().replace(/\.html$/, '').replace(/\/+$/, '') || '/';
+    return (!PATH_RE.test(p) || p.startsWith('/admin') || p.startsWith('/api')) ? '/other' : p;
+  };
 
   if (typeof b.p === 'string') {
-    let p = b.p.toLowerCase().replace(/\.html$/, '').replace(/\/+$/, '') || '/';
-    if (!PATH_RE.test(p) || p.startsWith('/admin') || p.startsWith('/api')) p = '/other';
+    const p = normPath(b.p);
     stmts.push(up('pv', p));
     if (b.u) {
       stmts.push(up('uv', '-'));
@@ -101,6 +110,16 @@ export async function postEvent(ctx) {
       stmts.push(up('ref', refKind(clean(b.r, 120))));
     }
     if (b.n) stmts.push(up('nv', '-'));
+    if (b.s) stmts.push(up('vis', '-'));        // 방문(30분) 시작
+    if (b.d2) stmts.push(up('d2', '-'));        // 두 화면 이상 본 방문
+  }
+  /* 화면을 떠나며 알려 주는 머문 시간 — 화면을 한 번 더 세지 않도록 경로를 q 로 받습니다 */
+  if (typeof b.q === 'string') {
+    const p = normPath(b.q);
+    const t = int(b.t, 1, DWELL_MAX);
+    if (t) { stmts.push(add('dwell', '-', t), add('dwelln', '-', 1), add('pdwell', p, t), add('pdwelln', p, 1)); }
+    const sd = int(b.sd, 0, 100);
+    if (sd !== null) { stmts.push(add('scroll', p, sd), add('scrolln', p, 1)); }
   }
   if (typeof b.k === 'string' && EVENTS.has(b.k)) {
     stmts.push(up('ev', b.k));

@@ -247,3 +247,57 @@ table.t td.n,table.t th.n{text-align:right;}
 }
 @media (max-width:520px){ .kpis{gap:8px;} .kpi{padding:12px;} .kpi .v{font-size:22px;} }
 @media print{ .side,.top{display:none;} .shell{display:block;} }
+
+/* ════════ KPI 지표 ════════ */
+.north{border-color:#CFE3D6;background:linear-gradient(180deg,#FFFFFF,#F7FBF8);}
+.north-body{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
+.north .nv{font-size:44px;font-weight:700;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:#1F5A3C;}
+.north .nd{font-size:12.5px;color:var(--sub);margin-top:8px;}
+.north .nsp{margin-left:auto;}
+.north .nsub{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--line2);font-size:13px;color:var(--sub);}
+.north .nsub b{color:var(--ink);font-variant-numeric:tabular-nums;}
+.spark{display:block;}
+
+.mrow{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line2);}
+.mrow:last-child{border-bottom:0;}
+.mrow .ml{font-size:13px;color:var(--sub);display:flex;align-items:center;gap:5px;min-width:0;}
+.mrow .mv{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.mrow .md{min-width:112px;text-align:right;}
+.qm{border:1px solid var(--line);background:var(--soft);color:var(--mute);width:16px;height:16px;border-radius:50%;
+  font-size:10px;line-height:1;padding:0;flex:none;cursor:help;}
+.qm:hover{border-color:var(--brand);color:var(--brand-ink);}
+
+.dl{font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.dl.up{color:var(--ok);} .dl.down{color:var(--bad);}
+.dl.flat,.dl.none{color:var(--mute);}
+.up{color:var(--ok);} .down{color:var(--bad);}
+
+/* 목표 */
+.goals{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;}
+.goal .gh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:7px;font-size:13px;}
+.goal .gtr{height:9px;background:var(--line2);border-radius:5px;overflow:hidden;margin-bottom:6px;}
+.goal .gtr i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--s1));border-radius:5px;min-width:3px;}
+
+/* 흐름(퍼널) */
+.funnel{display:flex;flex-direction:column;gap:10px;}
+.fstep{display:grid;grid-template-columns:minmax(96px,20%) 1fr minmax(96px,16%);gap:12px;align-items:center;font-size:13px;}
+.fstep .fl{color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fstep .ftr{position:relative;height:26px;background:var(--soft);border-radius:7px;display:flex;align-items:center;}
+.fstep .ftr i{display:block;height:100%;background:var(--brand-soft);border:1px solid #CFE3D6;border-radius:7px;position:absolute;left:0;top:0;}
+.fstep .ftr b{position:relative;padding-left:10px;font-variant-numeric:tabular-nums;font-size:13px;}
+.fstep .fc{text-align:right;}
+.fstep .conv{font-size:11.5px;color:var(--mute);}
+
+/* 달마다 새로 늘어난 사람 */
+.mbars{display:flex;gap:10px;align-items:flex-end;overflow-x:auto;padding:6px 2px 0;}
+.mb{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:40px;flex:1;}
+.mb i{display:block;width:100%;max-width:46px;background:var(--brand-soft);border:1px solid #CFE3D6;border-radius:5px 5px 0 0;}
+.mb .v{font-size:11.5px;color:var(--sub);font-variant-numeric:tabular-nums;}
+.mb .l{font-size:11px;color:var(--mute);}
+td.mail{font-variant-numeric:tabular-nums;word-break:break-all;}
+
+@media (max-width:900px){
+  .north .nsp{margin-left:0;}
+  .fstep{grid-template-columns:minmax(80px,32%) 1fr;}
+  .fstep .fc{grid-column:2;text-align:left;margin-top:-4px;}
+}

@@ -1,6 +1,6 @@
 /* 여덟글자 관리자 — 한 파일 앱 (빌드 없음, ES 모듈)
    일진 계산은 본 서비스 saju.js 를 그대로 가져다 씁니다. 계산이 두 군데 있으면 언젠가 값이 어긋나니까요. */
-import { todayInfo, STEMS, BRANCHES } from '/assets/js/saju.js?v=20261117b';
+import { todayInfo, STEMS, BRANCHES } from '/assets/js/saju.js?v=20261118a';
 
 /* ════════ 이름표 ════════ */
 const ROLE = { owner: '최고관리자', manager: '운영', viewer: '조회' };
@@ -37,6 +37,7 @@ const AUDIT = {
   'waitlist.reveal': '알림 신청 이메일 열람', 'waitlist.export': '알림 신청 명단 내려받기', 'waitlist.notified': '알림 발송 처리',
   'waitlist.delete': '알림 신청 삭제', 'account.create': '계정 추가', 'account.update': '계정 수정', 'account.reset': '비밀번호 초기화',
   'system.purge': '보유기간 지난 기록 파기', 'backup.download': '전체 백업 내려받기',
+  'kpi.goals': 'KPI 목표 설정', 'members.export': '이메일 명단 내려받기',
 };
 
 /* ════════ 도구 ════════ */
@@ -158,9 +159,11 @@ const S = { me: null, needsSetup: false, setupKeyConfigured: true, badge: 0 };
 const NAV = [
   { grp: '한눈에' },
   { path: '/', label: '대시보드', icon: '<path d="M3 10.5 10 4l7 6.5V16a1 1 0 0 1-1 1h-3.5v-4h-5v4H4a1 1 0 0 1-1-1z"/>', role: 'viewer', view: viewDashboard },
+  { path: '/kpi', label: 'KPI 지표', icon: '<path d="M10 17a7 7 0 1 1 7-7"/><path d="M10 10l4.5-3"/><circle cx="10" cy="10" r="1.6"/>', role: 'viewer', view: viewKpi },
   { path: '/stats', label: '방문·사용 통계', icon: '<path d="M4 16V9M9 16V4M14 16v-5M3 17h14"/>', role: 'viewer', view: viewStats },
   { grp: '고객' },
   { path: '/inquiries', label: '문의함', icon: '<path d="M3 5h14v9H8l-4 3v-3H3z"/>', role: 'viewer', view: viewInquiries, badge: true },
+  { path: '/members', label: '이메일 명단', icon: '<circle cx="7.5" cy="7" r="3"/><path d="M2.5 16c.6-2.6 2.5-4 5-4s4.4 1.4 5 4"/><rect x="12" y="4" width="6" height="5" rx="1"/><path d="M12 4.6 15 7l3-2.4"/>', role: 'viewer', view: viewMembers },
   { path: '/waitlist', label: '출시 알림 신청', icon: '<path d="M10 3a4 4 0 0 1 4 4v3l1.5 3h-11L6 10V7a4 4 0 0 1 4-4zM8.5 16a1.6 1.6 0 0 0 3 0"/>', role: 'viewer', view: viewWaitlist },
   { grp: '서비스' },
   { path: '/products', label: '상품·가격', icon: '<path d="M3 7l7-4 7 4v7l-7 4-7-4z"/><path d="M3 7l7 4 7-4M10 11v7"/>', role: 'viewer', view: viewProducts },
@@ -427,7 +430,7 @@ async function viewDashboard(v) {
     </section>
 
     <section class="card"><div class="ch"><h2>최근 14일 방문</h2><span class="sub">기기 수는 하루 한 번만 셉니다 · 쿠키·IP를 남기지 않아요</span>
-      <div class="act"><a class="btn sm" href="#/stats">자세히</a></div></div><div id="trend"></div></section>
+      <div class="act"><a class="btn sm" href="#/kpi">KPI 지표</a><a class="btn sm" href="#/stats">자세히</a></div></div><div id="trend"></div></section>
 
     <div class="grid g2">
       <section class="card"><div class="ch"><h2>많이 열린 화면</h2><span class="sub">최근 7일</span></div>${barList(toItems(d.week.pages, pageLabel, 8))}</section>
@@ -502,6 +505,334 @@ async function viewStats(v) {
   $('#asTable').onclick = () => { const tb = $('#trendTable'); tb.hidden = !tb.hidden; $('#trend').hidden = !tb.hidden; $('#asTable').textContent = tb.hidden ? '표로 보기' : '그래프로 보기'; };
   $('#dlCsv').onclick = () => download(`yeodeol-stats-${d.from}_${d.to}.csv`,
     csv(keys.map(k => ({ day: k, ...d.series[k] })), [['day', '날짜'], ['uv', '방문 기기'], ['pv', '열린 화면'], ['nv', '처음 온 기기']]));
+}
+
+/* ════════ KPI 지표 ════════
+   방문 → 머무름 → 첫 경험 → 습관 → 확산 → 수익. 서비스가 사람에게 가 닿는 순서대로 묶었습니다.
+   점수나 등급은 쓰지 않습니다. 늘었는지 줄었는지와, 아직 모르는지만 보여 줍니다. */
+const KPI_NOTE = {
+  kept: '감정 날씨·세 줄·오늘의 한 가지 중 하나라도 남긴 기기. 이 서비스가 잘 되고 있는지를 가장 정직하게 보여 주는 숫자예요.',
+  dwellAvg: '다른 탭에 가 있는 동안은 세지 않아요. 화면을 켜 두기만 한 시간과 읽은 시간을 섞지 않으려고요.',
+  bounce: '한 화면만 보고 떠난 방문의 비율. 오늘의 운세만 보고 가는 건 자연스러운 일이라, 낮을수록 좋다고만 보긴 어려워요.',
+  firstUse: '처음 온 기기 가운데 사주를 만든 비율. 첫 화면이 제 몫을 하고 있는지 봅니다.',
+  revisit: '그 기간에 방문한 기기 가운데 예전에 온 적 있는 기기의 비율.',
+  scrollAvg: '화면을 어디까지 읽어 내렸는지의 평균. 글이 길어 끝까지 못 읽는 화면을 찾을 때 씁니다.',
+};
+const pctFmt = (v, d = 0) => (v === null || v === undefined ? '—' : `${(v * 100).toFixed(d)}%`);
+function dur(sec) {
+  if (sec === null || sec === undefined) return '—';
+  const s = Math.round(sec);
+  if (s < 60) return `${s}초`;
+  const m = Math.floor(s / 60), r = s % 60;
+  return r ? `${m}분 ${r}초` : `${m}분`;
+}
+/* 증감 — 무엇을 재는 값이냐에 따라 읽는 법이 다릅니다.
+   count 개수 · rate 0~1 비율 · pp 0~100 비율 · dec 소수 · sec 시간 */
+function delta(cur, prev, kind = 'count') {
+  const bad = v => v === null || v === undefined || Number.isNaN(v);
+  if (bad(cur) || bad(prev)) return '<span class="dl none">견줄 값 없음</span>';
+  const d = cur - prev;
+  const flat = '<span class="dl flat">그대로</span>';
+  const wrap = body => `<span class="dl ${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'} ${body}</span>`;
+  if (kind === 'rate' || kind === 'pp') {
+    const pt = kind === 'rate' ? d * 100 : d;
+    return Math.abs(pt) < 0.05 ? flat : wrap(`${Math.abs(pt).toFixed(1)}%p`);
+  }
+  if (kind === 'dec') return Math.abs(d) < 0.05 ? flat : wrap(Math.abs(d).toFixed(1));
+  if (kind === 'sec') return Math.abs(d) < 1 ? flat : wrap(dur(Math.abs(d)));
+  if (!prev && !cur) return '<span class="dl none">아직 없음</span>';
+  if (d === 0) return flat;
+  const r = prev ? ` (${Math.abs(Math.round((d / prev) * 100))}%)` : '';
+  return wrap(`${num(Math.abs(d))}${r}`);
+}
+function spark(values, color = 'var(--s1)') {
+  const W = 132, H = 34, max = Math.max(1, ...values), n = values.length;
+  const x = i => (n === 1 ? W / 2 : (i * W) / (n - 1));
+  const y = v => H - 3 - (H - 8) * (v / max);
+  const d = values.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${x(n - 1)}" cy="${y(values[n - 1])}" r="2.8" fill="${color}"/></svg>`;
+}
+/* 한 줄짜리 지표 */
+function mrow(label, value, deltaHtml, hint) {
+  return `<div class="mrow"><div class="ml">${esc(label)}${hint ? `<button class="qm" type="button" title="${esc(hint)}" aria-label="${esc(label)} 설명">?</button>` : ''}</div>
+    <div class="mv">${value}</div><div class="md">${deltaHtml}</div></div>`;
+}
+
+async function viewKpi(v) {
+  const days = Number(query().get('days')) || 30;
+  const [d, prods] = await Promise.all([api('kpi?days=' + days), api('products').catch(() => ({ items: [] }))]);
+  const pname = Object.fromEntries((prods.items || []).map(p => [p.id, p.name]));
+  const c = d.cur, p = d.prev;
+  const keys = Object.keys(d.series);
+  const keptSeries = keys.map(k => d.series[k].kept);
+  const uvSeries = keys.map(k => d.series[k].uv);
+  crumb(`${d.from} ~ ${d.to} · 직전 기간(${d.prevFrom} ~ ${d.prevTo})과 견줍니다`);
+
+  /* 이달의 목표 — 지금 속도로 가면 월말에 얼마가 되는지까지 */
+  const now = new Date(Date.now() + 9 * 3600e3);
+  const dayOfMonth = now.getUTCDate();
+  const daysInMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)).getUTCDate();
+  const setGoals = Object.entries(d.goals || {}).filter(([, t]) => t > 0);
+  const goalHtml = setGoals.length ? `<div class="goals">${setGoals.map(([k, target]) => {
+    const got = d.mtd[k] || 0;
+    const r = Math.min(1, got / target);
+    const pace = Math.round((got / dayOfMonth) * daysInMonth);
+    const willMake = pace >= target;
+    return `<div class="goal">
+      <div class="gh"><b>${esc(d.goalMetrics[k] || k)}</b><span class="muted small">${num(got)} / ${num(target)}</span></div>
+      <div class="gtr"><i style="width:${(r * 100).toFixed(1)}%"></i></div>
+      <div class="small muted">${Math.round(r * 100)}% · 이 속도면 월말에 약 ${num(pace)}
+        <span class="${willMake ? 'up' : 'down'}">${willMake ? '목표에 닿아요' : `${num(Math.max(0, target - pace))} 모자라요`}</span></div>
+    </div>`;
+  }).join('')}</div>` : `<div class="empty">아직 목표를 적어 두지 않았어요. 목표가 있어야 숫자가 ‘많다·적다’로 읽힙니다.</div>`;
+
+  /* 흐름 — 방문에서 결제 이동까지 */
+  const top = Math.max(1, d.funnel[0].n);
+  const funHtml = d.funnel.map((f, i) => {
+    const prevN = i ? d.funnel[i - 1].n : null;
+    const conv = i && prevN ? ` <span class="conv">직전 단계의 ${Math.round((f.n / prevN) * 100)}%</span>` : '';
+    return `<div class="fstep"><div class="fl">${esc(f.label)}</div>
+      <div class="ftr"><i style="width:${Math.max(1.5, (f.n / top) * 100)}%"></i><b>${num(f.n)}</b></div>
+      <div class="fc">${conv}</div></div>`;
+  }).join('');
+
+  const contentRows = d.content.slice(0, 20).map(x => `<tr>
+    <td>${esc(pageLabel(x.path))}<div class="muted small">${esc(x.path)}</div></td>
+    <td class="n">${num(x.pv)}</td>
+    <td class="n">${delta(x.pv, x.prevPv)}</td>
+    <td class="n">${dur(x.dwell)}</td>
+    <td class="n">${x.scroll === null ? '—' : Math.round(x.scroll) + '%'}</td>
+    <td class="n muted">${num(x.measured)}</td></tr>`).join('');
+
+  const prodKeys = [...new Set([...Object.keys(d.products.wish), ...Object.keys(d.products.notify), ...Object.keys(d.products.buy)])];
+  const prodRows = prodKeys.map(k => {
+    const w = d.products.wish[k] || 0, n = d.products.notify[k] || 0, b = d.products.buy[k] || 0;
+    return { k, w, n, b, sum: w + n + b };
+  }).sort((a, b) => b.sum - a.sum);
+
+  v.innerHTML = `<div class="stack">
+    <div class="toolbar">
+      <div class="seg" role="group" aria-label="기간">${[7, 30, 90, 180].map(n => `<button aria-pressed="${n === days}" data-d="${n}">최근 ${n}일</button>`).join('')}</div>
+      <span class="grow"></span>
+      ${can('manager') ? '<button class="btn sm" id="setGoal">이달의 목표 정하기</button>' : ''}
+      <button class="btn sm" id="dlKpi">지표 내려받기(CSV)</button>
+    </div>
+
+    <section class="card north">
+      <div class="ch"><h2>북극성 지표 · 기록을 남긴 기기</h2>
+        <span class="sub">${days}일 합계 · 기기당 하루 한 번</span></div>
+      <div class="north-body">
+        <div><div class="nv">${num(c.kept)}</div>
+          <div class="nd">직전 ${days}일 ${num(p.kept)} · ${delta(c.kept, p.kept)}</div>
+          <div class="small muted" style="margin-top:8px;max-width:420px;line-height:1.7">${KPI_NOTE.kept}</div></div>
+        <div class="nsp">${spark(keptSeries)}<div class="small muted" style="text-align:right">하루 평균 ${num(Math.round(c.kept / days))}</div></div>
+      </div>
+      <div class="nsub">
+        <span>방문한 기기 가운데 <b>${pctFmt(c.keepRate, 1)}</b>가 기록을 남겼어요</span>
+        <span class="muted">직전 기간 ${pctFmt(p.keepRate, 1)}</span>
+      </div>
+    </section>
+
+    <section class="card"><div class="ch"><h2>이달의 목표</h2><span class="sub">${esc(d.month)} · ${dayOfMonth}일째 / ${daysInMonth}일</span>
+      ${can('manager') ? '<div class="act"><button class="btn sm ghost" id="setGoal2">목표 고치기</button></div>' : ''}</div>
+      ${goalHtml}</section>
+
+    <div class="grid g2">
+      <section class="card"><div class="ch"><h2>① 도달 — 얼마나 왔나</h2></div>
+        ${mrow('방문한 기기', num(c.uv), delta(c.uv, p.uv))}
+        ${mrow('방문(30분 묶음)', num(c.vis), delta(c.vis, p.vis))}
+        ${mrow('열린 화면', num(c.pv), delta(c.pv, p.pv))}
+        ${mrow('처음 온 기기', num(c.nv), delta(c.nv, p.nv))}
+        ${mrow('다시 온 비율', pctFmt(c.revisit, 1), delta(c.revisit, p.revisit, 'rate'), KPI_NOTE.revisit)}
+      </section>
+      <section class="card"><div class="ch"><h2>② 머무름 — 얼마나 들여다봤나</h2></div>
+        ${mrow('화면당 머문 시간', dur(c.dwellAvg), delta(c.dwellAvg, p.dwellAvg, 'sec'), KPI_NOTE.dwellAvg)}
+        ${mrow('읽어 내린 비율', c.scrollAvg === null ? '—' : Math.round(c.scrollAvg) + '%', delta(c.scrollAvg, p.scrollAvg, 'pp'), KPI_NOTE.scrollAvg)}
+        ${mrow('방문당 화면 수', c.pagesPerVisit === null ? '—' : c.pagesPerVisit.toFixed(1), delta(c.pagesPerVisit, p.pagesPerVisit, 'dec'))}
+        ${mrow('한 화면만 보고 떠남', pctFmt(c.bounce, 1), delta(c.bounce, p.bounce, 'rate'), KPI_NOTE.bounce)}
+        ${c.dwellMeasured ? '' : '<div class="note" style="margin-top:12px">머문 시간은 이번 배포부터 재기 시작합니다. 하루 이틀 지나야 숫자가 쌓여요.</div>'}
+      </section>
+    </div>
+
+    <div class="grid g2">
+      <section class="card"><div class="ch"><h2>③ 첫 경험 — 사주를 만들었나</h2></div>
+        ${mrow('사주 만들기', num(c.saju), delta(c.saju, p.saju))}
+        ${mrow('처음 온 기기 중 만든 비율', pctFmt(c.firstUse, 1), delta(c.firstUse, p.firstUse, 'rate'), KPI_NOTE.firstUse)}
+        ${mrow('궁합 상대 저장', num(c.relation), delta(c.relation, p.relation))}
+      </section>
+      <section class="card"><div class="ch"><h2>④ 습관 — 다시 와서 남겼나</h2></div>
+        ${mrow('감정 날씨 기록', num(c.mood), delta(c.mood, p.mood))}
+        ${mrow('세 줄 기록', num(c.note), delta(c.note, p.note))}
+        ${mrow('오늘의 한 가지 완료', num(c.action), delta(c.action, p.action))}
+        ${mrow('홈 화면에 추가', num(c.install), delta(c.install, p.install))}
+      </section>
+    </div>
+
+    <div class="grid g2">
+      <section class="card"><div class="ch"><h2>⑤ 확산 — 남에게 보여 줬나</h2></div>
+        ${mrow('카드 저장·링크 공유', num(c.share), delta(c.share, p.share))}
+        ${mrow('공유 링크가 열린 횟수', num(c.invite), delta(c.invite, p.invite))}
+        ${mrow('문의 접수', num(c.inquiry), delta(c.inquiry, p.inquiry))}
+      </section>
+      <section class="card"><div class="ch"><h2>⑥ 수익으로 가는 길</h2></div>
+        ${mrow('상품에 관심 표시', num(c.wish), delta(c.wish, p.wish))}
+        ${mrow('출시 알림 신청', num(c.notify), delta(c.notify, p.notify))}
+        ${mrow('결제 링크로 이동', num(c.buy), delta(c.buy, p.buy))}
+        ${mrow('새로 이메일을 남긴 사람', num(c.members), delta(c.members, p.members))}
+      </section>
+    </div>
+
+    <section class="card"><div class="ch"><h2>흐름</h2><span class="sub">${days}일 · 방문에서 결제 링크까지</span></div>
+      <div class="funnel">${funHtml}</div>
+      <p class="note" style="margin-top:14px">각 줄은 서로 다른 기기를 센 값이라 한 사람이 끝까지 간 비율은 아니에요. 단계마다 얼마나 좁아지는지를 보는 용도로 읽어 주세요.</p>
+    </section>
+
+    <section class="card"><div class="ch"><h2>날짜별 흐름</h2>
+      <div class="act"><button class="btn sm ghost" id="asTable">표로 보기</button></div></div>
+      <div id="trend"></div><div id="trendTable" hidden></div></section>
+
+    <section class="card"><div class="ch"><h2>가장 많이 읽힌 화면</h2><span class="sub">최근 ${days}일 · 머문 시간이 긴 화면이 ‘정보’로 쓰이는 화면이에요</span></div>
+      <div class="table-wrap"><table class="t">
+        <thead><tr><th>화면</th><th class="n">열린 횟수</th><th class="n">직전 기간 대비</th><th class="n">머문 시간</th><th class="n">읽어 내림</th><th class="n">잰 횟수</th></tr></thead>
+        <tbody>${contentRows || '<tr><td colspan="6" class="empty">아직 쌓인 숫자가 없어요</td></tr>'}</tbody></table></div>
+    </section>
+
+    <div class="grid g2">
+      <section class="card"><div class="ch"><h2>상품별 반응</h2><span class="sub">관심 → 알림 → 결제 이동</span>
+        <div class="act"><a class="btn sm" href="#/products">상품 관리</a></div></div>
+        <div class="table-wrap"><table class="t">
+          <thead><tr><th>상품</th><th class="n">관심</th><th class="n">알림</th><th class="n">결제 이동</th></tr></thead>
+          <tbody>${prodRows.map(r => `<tr><td>${esc(pname[r.k] || r.k)}</td><td class="n">${num(r.w)}</td><td class="n">${num(r.n)}</td><td class="n">${num(r.b)}</td></tr>`).join('')
+            || '<tr><td colspan="4" class="empty">아직 반응이 없어요</td></tr>'}</tbody></table></div>
+      </section>
+      <section class="card"><div class="ch"><h2>이메일을 남긴 사람</h2>
+        <div class="act"><a class="btn sm" href="#/members">명단 보기</a></div></div>
+        <div class="kpis" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+          <div class="kpi"><div class="k">누적</div><div class="v">${num(d.members.total)}</div><div class="d">같은 주소는 한 사람으로 셉니다</div></div>
+          <div class="kpi"><div class="k">이번 달 새로</div><div class="v">${num(d.members.thisMonth)}</div><div class="d">${esc(d.month)}</div></div>
+        </div>
+        <div class="note info" style="margin-top:14px">여덟글자에는 아직 회원가입이 없습니다. 지금 ‘가입자’라 부를 수 있는 사람은 출시 알림을 신청하며 스스로 이메일을 적어 준 분들이에요. 문의하며 이메일을 남긴 분은 따로 ${num(d.members.withInquiry)}명입니다.</div>
+      </section>
+    </div>
+
+    <div class="grid g2">
+      <section class="card"><div class="ch"><h2>들어온 곳</h2><span class="sub">최근 ${days}일</span></div>
+        ${barList(toItems(d.ref, k => REF[k] || k, 10), { color: 'var(--s2)' })}</section>
+      <section class="card"><div class="ch"><h2>기기</h2></div>
+        ${barList(toItems(d.dev, k => DEV[k] || k), { color: 'var(--s2)' })}</section>
+    </div>
+
+    <p class="note">모든 숫자는 날짜별 합계 한 줄로만 쌓입니다. 방문자를 구별하는 쿠키·IP·기기 번호는 서버에 남지 않고, 추적 거부(GPC·DNT)를 켠 방문은 아예 세지 않아요. 그래서 ‘사람 수’가 아니라 ‘기기 수’라고 적습니다.</p>
+  </div>`;
+
+  $$('.seg button', v).forEach(b => b.onclick = () => { location.hash = `#/kpi?days=${b.dataset.d}`; });
+  lineChart($('#trend'), keys, [
+    { name: '방문 기기', color: '#2D8659', values: uvSeries },
+    { name: '기록 남긴 기기', color: '#B07C2A', values: keptSeries },
+    { name: '열린 화면', color: '#3F6FB5', values: keys.map(k => d.series[k].pv), dash: true },
+  ], { height: 240 });
+  $('#trendTable').innerHTML = `<div class="table-wrap"><table class="t">
+    <thead><tr><th>날짜</th><th class="n">방문 기기</th><th class="n">방문</th><th class="n">열린 화면</th><th class="n">기록 남김</th><th class="n">머문 시간</th></tr></thead><tbody>
+    ${keys.slice().reverse().map(k => { const r = d.series[k]; return `<tr><td>${k}</td><td class="n">${num(r.uv)}</td><td class="n">${num(r.vis)}</td>
+      <td class="n">${num(r.pv)}</td><td class="n">${num(r.kept)}</td><td class="n">${r.dwelln ? dur(r.dwell / r.dwelln) : '—'}</td></tr>`; }).join('')}
+    </tbody></table></div>`;
+  $('#asTable').onclick = () => { const tb = $('#trendTable'); tb.hidden = !tb.hidden; $('#trend').hidden = !tb.hidden; $('#asTable').textContent = tb.hidden ? '표로 보기' : '그래프로 보기'; };
+  $('#dlKpi').onclick = () => download(`yeodeol-kpi-${d.from}_${d.to}.csv`,
+    csv(keys.map(k => { const r = d.series[k]; return { day: k, uv: r.uv, vis: r.vis, pv: r.pv, kept: r.kept, dwell: r.dwelln ? Math.round(r.dwell / r.dwelln) : '' }; }),
+      [['day', '날짜'], ['uv', '방문 기기'], ['vis', '방문'], ['pv', '열린 화면'], ['kept', '기록 남긴 기기'], ['dwell', '화면당 머문 초']]));
+  const open = () => goalDialog(d);
+  $('#setGoal') && ($('#setGoal').onclick = open);
+  $('#setGoal2') && ($('#setGoal2').onclick = open);
+}
+
+async function goalDialog(d) {
+  const ok = await modal({
+    title: '이달의 목표',
+    body: `<p class="small muted" style="margin:0 0 14px;line-height:1.7">한 달 동안 여기까지 가면 좋겠다는 숫자를 적어 주세요. 비워 두거나 0을 적으면 그 지표는 목표를 보지 않습니다.</p>
+      <div class="form-grid">${Object.entries(d.goalMetrics).map(([k, label]) => `<div class="field">
+        <label for="g_${k}">${esc(label)}</label>
+        <input class="in" id="g_${k}" type="number" min="0" step="1" inputmode="numeric" value="${Number(d.goals[k] || 0)}">
+        <span class="hint">이번 달 지금까지 ${num(d.mtd[k] || 0)}</span></div>`).join('')}</div>`,
+    actions: [{ label: '취소', value: false }, {
+      label: '저장', kind: 'primary',
+      run: async box => {
+        const body = {};
+        for (const k of Object.keys(d.goalMetrics)) body[k] = Number($(`#g_${k}`, box).value || 0);
+        await api('kpi/goals', { method: 'PUT', body });
+        return true;
+      },
+    }],
+  });
+  if (ok) { toast('목표를 저장했어요'); render(); }
+}
+
+/* ════════ 이메일 명단 ════════ */
+async function viewMembers(v) {
+  const qs = query();
+  const page = Number(qs.get('page')) || 1;
+  const q = qs.get('q') || '';
+  const sort = qs.get('sort') || 'new';
+  const d = await api(`members?page=${page}&q=${encodeURIComponent(q)}&sort=${sort}`);
+  crumb(`${num(d.total)}명 · 같은 주소는 한 사람으로 셉니다`);
+  const maxMonth = Math.max(1, ...d.byMonth.map(m => m.n));
+
+  v.innerHTML = `<div class="stack">
+    <div class="note info">여덟글자에는 아직 회원가입이 없습니다. 이 명단은 <b>출시 알림을 신청하며 스스로 이메일을 적어 준 분들</b>이에요. 알림을 보낸 뒤 30일이 지나면 자동으로 지워지고, 그때 명단에서도 사라집니다.</div>
+
+    <div class="toolbar">
+      <form id="sf" style="display:flex;gap:8px"><input class="in" id="q" placeholder="이메일 일부로 찾기" value="${esc(q)}" style="width:220px">
+        <button class="btn sm">찾기</button>${q ? '<a class="btn sm ghost" href="#/members">전체</a>' : ''}</form>
+      <span class="grow"></span>
+      <div class="seg" role="group" aria-label="정렬">
+        <button aria-pressed="${sort === 'new'}" data-s="new">최근 순</button>
+        <button aria-pressed="${sort === 'old'}" data-s="old">오래된 순</button></div>
+      ${can('manager') ? '<button class="btn sm" id="dl">명단 내려받기(CSV)</button>' : ''}
+    </div>
+
+    <section class="card"><div class="ch"><h2>달마다 새로 늘어난 사람</h2><span class="sub">처음 이메일을 남긴 달 기준</span></div>
+      ${d.byMonth.length ? `<div class="mbars">${d.byMonth.map(m => `<div class="mb" title="${m.m} · ${num(m.n)}명">
+        <span class="v">${num(m.n)}</span><i style="height:${Math.max(4, (m.n / maxMonth) * 92)}px"></i><span class="l">${m.m.slice(2).replace('-', '.')}</span></div>`).join('')}</div>`
+        : '<div class="empty">아직 명단이 비어 있어요</div>'}</section>
+
+    <section class="card"><div class="ch"><h2>명단</h2><span class="sub">이메일은 가려서 보여 줘요 · 열어 보면 활동 기록에 남습니다</span></div>
+      <div class="table-wrap"><table class="t">
+        <thead><tr><th>이메일</th><th>신청한 상품</th><th class="n">신청 수</th><th>처음 남긴 날</th><th>상태</th><th></th></tr></thead>
+        <tbody>${d.items.map(m => `<tr data-id="${m.id}">
+          <td class="mail">${esc(m.email)}</td>
+          <td>${m.products.map(x => `<span class="badge b-brand" style="margin:1px 3px 1px 0">${esc(x)}</span>`).join('') || '<span class="muted">—</span>'}</td>
+          <td class="n">${num(m.items)}</td>
+          <td>${dt(m.first_at, false)}${ago(m.first_at) === dt(m.first_at, false) ? '' : `<div class="muted small">${ago(m.first_at)}</div>`}</td>
+          <td>${m.notified >= m.items ? '<span class="badge b-ok">알림 보냄</span>' : m.notified ? '<span class="badge b-warn">일부 보냄</span>' : '<span class="badge b-info">대기</span>'}</td>
+          <td class="n">${can('manager') ? '<button class="btn sm ghost rv">이메일 보기</button>' : ''}</td>
+        </tr>`).join('') || '<tr><td colspan="6" class="empty">아직 이메일을 남긴 분이 없어요</td></tr>'}</tbody></table></div>
+      ${d.pages > 1 ? `<div class="pager">${Array.from({ length: d.pages }, (_, i) => i + 1).map(n =>
+        `<a class="btn sm ${n === d.page ? 'primary' : 'ghost'}" href="#/members?page=${n}&q=${encodeURIComponent(q)}&sort=${sort}">${n}</a>`).join('')}</div>` : ''}
+    </section>
+
+    <p class="note">명단을 내려받으면 가려지지 않은 이메일이 파일로 나옵니다. 누가 언제 내려받았는지는 활동 기록에 남아요. 알림을 보낸 뒤에는 <a href="#/waitlist">출시 알림 신청</a> 화면에서 ‘알림 보냄으로 표시’를 눌러 주세요.</p>
+  </div>`;
+
+  $('#sf').onsubmit = e => { e.preventDefault(); location.hash = `#/members?q=${encodeURIComponent($('#q').value.trim())}&sort=${sort}`; };
+  $$('.seg button', v).forEach(b => b.onclick = () => { location.hash = `#/members?q=${encodeURIComponent(q)}&sort=${b.dataset.s}`; });
+  $$('.rv', v).forEach(b => b.onclick = async () => {
+    const tr = b.closest('tr');
+    b.disabled = true;
+    try {
+      const r = await api(`waitlist/${tr.dataset.id}/reveal`, { method: 'POST' });
+      $('.mail', tr).textContent = r.email;
+      b.remove();
+    } catch (e) { toast(e.message, true); b.disabled = false; }
+  });
+  $('#dl') && ($('#dl').onclick = async () => {
+    const ok = await confirmBox('명단 내려받기', '가려지지 않은 이메일이 파일로 나옵니다. 받은 파일은 안전한 곳에 두고, 쓰임이 끝나면 지워 주세요. 내려받은 기록은 활동 기록에 남습니다.', { ok: '내려받기' });
+    if (!ok) return;
+    const r = await api('members/export', { method: 'POST' });
+    download(`yeodeol-members-${new Date().toISOString().slice(0, 10)}.csv`,
+      csv(r.items, [['email', '이메일'], ['first_at', '처음 남긴 날'], ['items', '신청 수'], ['notified', '알림 보낸 수'], ['products', '신청 상품']]));
+    toast(`${r.items.length}명을 내려받았어요`);
+  });
 }
 
 /* ════════ 문의함 ════════ */

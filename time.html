@@ -22,7 +22,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="/assets/css/style.css?v=20261117b">
+<link rel="stylesheet" href="/assets/css/style.css?v=20261118a">
 </head>
 <body>
 <a class="skip" href="#main">본문으로 건너뛰기</a>
@@ -158,11 +158,11 @@
 <nav class="tabbar" aria-label="하단 메뉴"></nav>
 
 <script type="module">
-import { boot, store, getMoods, copyShareLink, downloadCanvas, toast, wirePayButtons, WEATHER, dateKey } from '/assets/js/app.js?v=20261117b';
+import { boot, store, getMoods, copyShareLink, downloadCanvas, toast, wirePayButtons, WEATHER, dateKey } from '/assets/js/app.js?v=20261118a';
 import { yearMonths, tenGod, TEN_GODS, daeun, termsOfYear, seasonElOfTerm, termInfo,
-         fmt, STEMS, BRANCHES, STEMS_KR, BRANCHES_KR, ELEMENTS, ELEMENTS_HANJA } from '/assets/js/saju.js?v=20261117b';
-import { MONTH_NAME, DAEUN_LINE, TERM_MEANING, SEASON_REL, YEAR_LINE } from '/assets/js/content2.js?v=20261117b';
-import { EL_THEME } from '/assets/js/content.js?v=20261117b';
+         fmt, STEMS, BRANCHES, STEMS_KR, BRANCHES_KR, ELEMENTS, ELEMENTS_HANJA } from '/assets/js/saju.js?v=20261118a';
+import { MONTH_NAME, DAEUN_LINE, TERM_MEANING, SEASON_REL, YEAR_LINE } from '/assets/js/content2.js?v=20261118a';
+import { EL_THEME } from '/assets/js/content.js?v=20261118a';
 
 const ctx = boot('time');
 const { t, theme, mine } = ctx;
@@ -173,7 +173,7 @@ else { document.getElementById('timeIntro').hidden = true; document.getElementBy
 
 /* 인트로용 · 이번 절기 편지 공개분 (개인화 없이) */
 function introLetter(){
-  import('/assets/js/content3.js?v=20261117b').then(C3 => {
+  import('/assets/js/content3.js?v=20261118a').then(C3 => {
     const cur = t.term.current;
     const m = (TERM_MEANING[cur.name] || '');
     document.getElementById('introLetterBody').innerHTML =
@@ -283,7 +283,7 @@ function drawYearCard(c){
 function renderMonth(){
   const mIdx = ((t.term.current ? 0 : 0), 0);
   // 이번 절기월 월건: monthPillar from todayInfo? 간단히 yearMonths + 현재 λ 기반은 saju에 있음 — termInfo 사용
-  import('/assets/js/saju.js?v=20261117b').then(S => {
+  import('/assets/js/saju.js?v=20261118a').then(S => {
     const mp = S.monthPillarIndex(t.y, t.mo, t.d, 12);
     const tg = tenGod(mine.dayStem, mp.stem);
     const [nm, line, fit] = MONTH_NAME[tg];
@@ -319,7 +319,7 @@ function renderReview(){
     return;
   }
   // 일진 오행별 평균 기분
-  import('/assets/js/saju.js?v=20261117b').then(S => {
+  import('/assets/js/saju.js?v=20261118a').then(S => {
     const byEl = [[],[],[],[],[]];
     for (const [k, v] of entries) {
       const [yy, mm, dd] = k.split('-').map(Number);
@@ -389,7 +389,7 @@ function renderTermLetter(sy){
   const meaning = TERM_MEANING[cur.name] || '';
   const sEl = seasonElOfTerm((Object.keys(TERM_MEANING).indexOf(cur.name) + 21) % 24 * 15); // fallback
   // 계절 오행: 현재 절기 황경으로
-  import('/assets/js/saju.js?v=20261117b').then(S => {
+  import('/assets/js/saju.js?v=20261118a').then(S => {
     const lonIdx = S.TERM_NAMES.indexOf(cur.name) * 15 % 360;
     const se = seasonElOfTerm(lonIdx);
     const myEl = STEM_EL[mine.dayStem];

@@ -1,6 +1,6 @@
 /* 여덟글자 서버 — 관리자 API (/api/admin/*) */
 import { json, readBody, fail, clean, emailOk, maskEmail, sameOrigin, limit, sha256hex } from './http.js';
-import { getSettings, kstDay, nowIso, purge, DEFAULT_SETTINGS, SCHEMA_VERSION } from './db.js';
+import { getSettings, kstDay, kstMonth, nowIso, purge, DEFAULT_SETTINGS, SCHEMA_VERSION } from './db.js';
 import {
   ROLES, hashPassword, verifyPassword, passwordProblem, tempPassword, ipKey,
   createSession, currentAdmin, destroySession, sessionCookie, clearCookie, need, audit,
@@ -61,6 +61,11 @@ export async function handleAdmin(ctx, path, method) {
     case path === 'me/password' && method === 'POST': return changePassword(ctx, me);
     case path === 'dashboard' && method === 'GET': return dashboard(ctx, me);
     case path === 'stats' && method === 'GET': return stats(ctx, me);
+    case path === 'kpi' && method === 'GET': return kpi(ctx, me);
+    case path === 'kpi/goals' && method === 'PUT': return saveGoals(ctx, me);
+
+    case path === 'members' && method === 'GET': return listMembers(ctx, me);
+    case path === 'members/export' && method === 'POST': return exportMembers(ctx, me);
 
     case path === 'inquiries' && method === 'GET': return listInquiries(ctx, me);
     case seg[0] === 'inquiries' && id && seg.length === 2 && method === 'PATCH': return updateInquiry(ctx, me, id);
@@ -238,6 +243,205 @@ async function stats(ctx) {
     if (agg[r.kind]) agg[r.kind][r.key] = (agg[r.kind][r.key] || 0) + r.n;
   }
   return json({ from, to, days, series, agg });
+}
+
+/* ════════ KPI ════════
+   한 화면에서 '어디까지 왔는지'를 보기 위한 묶음입니다.
+   같은 길이의 직전 기간을 함께 계산해 늘었는지 줄었는지까지 돌려줍니다. */
+export const GOAL_METRICS = {
+  uv: '방문한 기기', kept: '기록을 남긴 기기', saju: '사주 만들기',
+  notify: '출시 알림 신청', buy: '결제 링크로 이동', members: '이메일을 남긴 사람(누적)',
+};
+
+function emptyBag() {
+  return {
+    uv: 0, pv: 0, nv: 0, vis: 0, d2: 0, dwell: 0, dwelln: 0, scroll: 0, scrolln: 0,
+    ev: {}, pages: {}, pdwell: {}, pdwelln: {}, pscroll: {}, pscrolln: {},
+    ref: {}, dev: {}, wish: {}, buy: {}, notify: {},
+  };
+}
+function fold(bag, r) {
+  const put = (o, k, n) => { o[k] = (o[k] || 0) + n; };
+  switch (r.kind) {
+    case 'uv': case 'nv': case 'vis': case 'd2': case 'dwell': case 'dwelln':
+      bag[r.kind] += r.n; break;
+    case 'pv': bag.pv += r.n; put(bag.pages, r.key, r.n); break;
+    case 'pdwell': put(bag.pdwell, r.key, r.n); break;
+    case 'pdwelln': put(bag.pdwelln, r.key, r.n); break;
+    case 'scroll': bag.scroll += r.n; put(bag.pscroll, r.key, r.n); break;
+    case 'scrolln': bag.scrolln += r.n; put(bag.pscrolln, r.key, r.n); break;
+    case 'ev': put(bag.ev, r.key, r.n); break;
+    case 'ref': put(bag.ref, r.key, r.n); break;
+    case 'dev': put(bag.dev, r.key, r.n); break;
+    case 'wish': put(bag.wish, r.key, r.n); break;
+    case 'buy_click': put(bag.buy, r.key, r.n); break;
+    case 'notify': put(bag.notify, r.key, r.n); break;
+  }
+}
+/* 체류 시간을 재기 전에 쌓인 날이 섞이면 평균이 이상해집니다.
+   그래서 '잰 횟수'가 있는 날만 나눕니다. 숫자가 없으면 null — 화면에서 '아직 모름'으로 보여 줍니다. */
+const avg = (sum, n) => (n > 0 ? sum / n : null);
+const rate = (a, b) => (b > 0 ? a / b : null);
+
+async function kpi(ctx) {
+  const db = ctx.env.DB;
+  const u = new URL(ctx.request.url);
+  const days = [7, 30, 90, 180].includes(Number(u.searchParams.get('days'))) ? Number(u.searchParams.get('days')) : 30;
+  const to = kstDay(), from = kstDay(-(days - 1));
+  const pTo = kstDay(-days), pFrom = kstDay(-(days * 2 - 1));
+  const month = kstMonth();
+
+  const rows = await db.prepare(`SELECT day, kind, key, n FROM stats_daily WHERE day BETWEEN ?1 AND ?2`).bind(pFrom, to).all();
+  const cur = emptyBag(), prev = emptyBag(), mtd = emptyBag();
+  const series = {};
+  for (let i = days - 1; i >= 0; i--) series[kstDay(-i)] = { uv: 0, pv: 0, vis: 0, kept: 0, dwell: 0, dwelln: 0 };
+
+  for (const r of rows.results) {
+    const inCur = r.day >= from;
+    fold(inCur ? cur : prev, r);
+    if (r.day.startsWith(month)) fold(mtd, r);
+    const s = series[r.day];
+    if (s) {
+      if (r.kind === 'uv' || r.kind === 'pv' || r.kind === 'vis') s[r.kind] += r.n;
+      if (r.kind === 'dwell') s.dwell += r.n;
+      if (r.kind === 'dwelln') s.dwelln += r.n;
+      if (r.kind === 'ev' && r.key === 'day_kept') s.kept += r.n;
+    }
+  }
+
+  /* 이메일을 남긴 사람 — 회원 기능이 아직 없으므로, 같은 주소를 한 사람으로 봅니다 */
+  const [mTotal, mNew, mPrev, inqMail] = await Promise.all([
+    db.prepare(`SELECT COUNT(DISTINCT LOWER(email)) AS n FROM waitlist`).first('n'),
+    db.prepare(`SELECT COUNT(*) AS n FROM (SELECT LOWER(email) AS e FROM waitlist GROUP BY 1 HAVING MIN(created_at) >= ?1)`).bind(from).first('n'),
+    db.prepare(`SELECT COUNT(*) AS n FROM (SELECT LOWER(email) AS e FROM waitlist GROUP BY 1 HAVING MIN(created_at) >= ?1 AND MIN(created_at) < ?2)`).bind(pFrom, from).first('n'),
+    db.prepare(`SELECT COUNT(DISTINCT LOWER(email)) AS n FROM inquiries WHERE email IS NOT NULL AND email <> ''`).first('n'),
+  ]);
+  const mMonth = await db.prepare(`SELECT COUNT(*) AS n FROM (SELECT LOWER(email) AS e FROM waitlist GROUP BY 1 HAVING MIN(created_at) >= ?1)`)
+    .bind(month + '-01').first('n');
+
+  const goalRows = await db.prepare(`SELECT metric, target FROM kpi_goals`).all();
+  const goals = Object.fromEntries(goalRows.results.map(r => [r.metric, r.target]));
+
+  const shape = (b, members) => ({
+    uv: b.uv, pv: b.pv, nv: b.nv, vis: b.vis,
+    revisit: rate(b.uv - b.nv, b.uv),
+    dwellAvg: avg(b.dwell, b.dwelln),
+    dwellMeasured: b.dwelln,
+    pagesPerVisit: rate(b.pv, b.vis),
+    bounce: b.vis > 0 ? Math.max(0, 1 - b.d2 / b.vis) : null,
+    scrollAvg: avg(b.scroll, b.scrolln),
+    saju: b.ev.saju_made || 0,
+    kept: b.ev.day_kept || 0,
+    mood: b.ev.mood_saved || 0,
+    note: b.ev.note_saved || 0,
+    action: b.ev.action_done || 0,
+    relation: b.ev.relation_saved || 0,
+    share: (b.ev.card_saved || 0) + (b.ev.link_shared || 0),
+    invite: b.ev.invite_opened || 0,
+    install: b.ev.install || 0,
+    wish: b.ev.wish || 0,
+    notify: b.ev.notify_signup || 0,
+    buy: b.ev.buy_click || 0,
+    inquiry: b.ev.inquiry_sent || 0,
+    members,
+    firstUse: rate(b.ev.saju_made || 0, b.nv),     // 처음 온 기기가 사주를 만든 비율
+    keepRate: rate(b.ev.day_kept || 0, b.uv),      // 방문한 기기가 기록을 남긴 비율
+    buyRate: rate(b.ev.buy_click || 0, b.uv),
+  });
+
+  /* 화면별 — 방문 · 머문 시간 · 읽어 내린 비율 */
+  const content = Object.keys({ ...cur.pages, ...cur.pdwell }).map(p => ({
+    path: p, pv: cur.pages[p] || 0,
+    dwell: avg(cur.pdwell[p] || 0, cur.pdwelln[p] || 0),
+    scroll: avg(cur.pscroll[p] || 0, cur.pscrolln[p] || 0),
+    measured: cur.pdwelln[p] || 0,
+    prevPv: prev.pages[p] || 0,
+  })).sort((a, b) => b.pv - a.pv);
+
+  const c = shape(cur, mNew), p = shape(prev, mPrev);
+  const funnel = [
+    { key: 'uv', label: '방문한 기기', n: c.uv },
+    { key: 'saju', label: '사주 만들기', n: c.saju },
+    { key: 'kept', label: '기록 남기기', n: c.kept },
+    { key: 'wish', label: '상품에 관심 표시', n: c.wish },
+    { key: 'notify', label: '출시 알림 신청', n: c.notify },
+    { key: 'buy', label: '결제 링크로 이동', n: c.buy },
+  ];
+
+  return json({
+    days, from, to, prevFrom: pFrom, prevTo: pTo, month,
+    cur: c, prev: p, series, content, funnel,
+    ref: cur.ref, dev: cur.dev,
+    products: { wish: cur.wish, buy: cur.buy, notify: cur.notify },
+    members: { total: mTotal, inPeriod: mNew, thisMonth: mMonth, withInquiry: inqMail },
+    mtd: {
+      uv: mtd.uv, kept: mtd.ev.day_kept || 0, saju: mtd.ev.saju_made || 0,
+      notify: mtd.ev.notify_signup || 0, buy: mtd.ev.buy_click || 0, members: mTotal,
+    },
+    goals, goalMetrics: GOAL_METRICS,
+  });
+}
+
+async function saveGoals(ctx, me) {
+  need(me, 'manager');
+  const db = ctx.env.DB;
+  const b = await readBody(ctx.request, 4096);
+  const now = nowIso();
+  const stmts = [], changed = [];
+  for (const k of Object.keys(GOAL_METRICS)) {
+    if (!(k in b)) continue;
+    const t = Math.max(0, Math.min(10_000_000, Math.round(Number(b[k]) || 0)));
+    changed.push(`${GOAL_METRICS[k]} ${t}`);
+    stmts.push(db.prepare(`INSERT INTO kpi_goals(metric,target,updated_at,updated_by) VALUES(?1,?2,?3,?4)
+      ON CONFLICT(metric) DO UPDATE SET target=excluded.target, updated_at=excluded.updated_at, updated_by=excluded.updated_by`)
+      .bind(k, t, now, me.name));
+  }
+  if (stmts.length) await db.batch(stmts);
+  if (changed.length) await audit(db, me, 'kpi.goals', `${changed.length}개`, changed.join(', '));
+  return json({ ok: true });
+}
+
+/* ════════ 이메일을 남긴 사람 ════════
+   회원가입 기능은 아직 없습니다. 지금 '명단'이라 부를 수 있는 것은
+   출시 알림을 신청하며 스스로 이메일을 적어 준 사람들뿐이고, 같은 주소는 한 사람으로 봅니다. */
+async function listMembers(ctx) {
+  const db = ctx.env.DB;
+  const u = new URL(ctx.request.url);
+  const q = clean(u.searchParams.get('q'), 60);
+  const page = Math.max(1, Number(u.searchParams.get('page')) || 1);
+  const sort = u.searchParams.get('sort') === 'old' ? 'ASC' : 'DESC';
+  const where = q ? `WHERE LOWER(email) LIKE ?1` : '';
+  const args = q ? [`%${q.toLowerCase()}%`] : [];
+  const total = await db.prepare(`SELECT COUNT(*) AS n FROM (SELECT LOWER(email) FROM waitlist ${where} GROUP BY 1)`).bind(...args).first('n');
+  const { results } = await db.prepare(
+    `SELECT MIN(id) AS id, LOWER(email) AS email, MIN(created_at) AS first_at, MAX(created_at) AS last_at,
+            COUNT(*) AS items, SUM(notified_at IS NOT NULL) AS notified, GROUP_CONCAT(product) AS products
+       FROM waitlist ${where} GROUP BY LOWER(email)
+       ORDER BY first_at ${sort} LIMIT 50 OFFSET ${(page - 1) * 50}`).bind(...args).all();
+  const names = await db.prepare(`SELECT id, name FROM products`).all();
+  const pname = Object.fromEntries(names.results.map(r => [r.id, r.name]));
+  const byMonth = await db.prepare(
+    `SELECT substr(first_at,1,7) AS m, COUNT(*) AS n FROM (SELECT LOWER(email) AS e, MIN(created_at) AS first_at FROM waitlist GROUP BY 1)
+      GROUP BY m ORDER BY m DESC LIMIT 12`).all();
+  return json({
+    total, page, pages: Math.max(1, Math.ceil(total / 50)),
+    items: results.map(r => ({
+      id: r.id, email: maskEmail(r.email), first_at: r.first_at, last_at: r.last_at,
+      items: r.items, notified: r.notified,
+      products: [...new Set(String(r.products || '').split(','))].filter(Boolean).map(x => pname[x] || x),
+    })),
+    byMonth: byMonth.results.slice().reverse(),
+  });
+}
+async function exportMembers(ctx, me) {
+  need(me, 'manager');
+  const db = ctx.env.DB;
+  const { results } = await db.prepare(
+    `SELECT LOWER(email) AS email, MIN(created_at) AS first_at, COUNT(*) AS items,
+            SUM(notified_at IS NOT NULL) AS notified, GROUP_CONCAT(product) AS products
+       FROM waitlist GROUP BY LOWER(email) ORDER BY first_at`).all();
+  await audit(db, me, 'members.export', '전체', `${results.length}명`);
+  return json({ items: results });
 }
 
 /* ════════ 문의 ════════ */
@@ -532,7 +736,7 @@ async function listAudit(ctx) {
 }
 async function system(ctx, me) {
   const db = ctx.env.DB;
-  const tables = ['admins', 'sessions', 'inquiries', 'waitlist', 'stats_daily', 'notices', 'products', 'audit'];
+  const tables = ['admins', 'sessions', 'inquiries', 'waitlist', 'stats_daily', 'notices', 'products', 'audit', 'kpi_goals'];
   const counts = {};
   const res = await db.batch(tables.map(t => db.prepare(`SELECT COUNT(*) AS n FROM ${t}`)));
   tables.forEach((t, i) => { counts[t] = res[i].results[0].n; });
@@ -557,6 +761,7 @@ async function backup(ctx, me) {
     inquiries: await pick(`SELECT * FROM inquiries ORDER BY id`),
     waitlist: await pick(`SELECT * FROM waitlist ORDER BY id`),
     stats_daily: await pick(`SELECT * FROM stats_daily ORDER BY day`),
+    kpi_goals: await pick(`SELECT * FROM kpi_goals ORDER BY metric`),
     admins: await pick(`SELECT id, login, name, role, active, created_at, last_login_at FROM admins ORDER BY id`),
   };
   await audit(db, me, 'backup.download');

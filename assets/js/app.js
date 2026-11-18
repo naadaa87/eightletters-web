@@ -4,8 +4,8 @@
      1) 익명 방문 숫자 — 경로와 '오늘 첫 방문인지' 여부. 쿠키·기기 번호 없음. GPC/DNT 를 켜면 보내지 않음
      2) 방문자가 직접 적어 보낸 문의
      3) 방문자가 직접 신청한 출시 알림 이메일 */
-import { todayInfo, fourPillars, tenGod, TEN_GODS, fmt, STEMS, ELEMENTS, ELEMENTS_HANJA, dateKey } from '/assets/js/saju.js?v=20261117b';
-import { EL_THEME, WEATHER, TEN_GOD_DAY, TAROT, STEM_DEF, BADGES } from '/assets/js/content.js?v=20261117b';
+import { todayInfo, fourPillars, tenGod, TEN_GODS, fmt, STEMS, ELEMENTS, ELEMENTS_HANJA, dateKey } from '/assets/js/saju.js?v=20261118a';
+import { EL_THEME, WEATHER, TEN_GOD_DAY, TAROT, STEM_DEF, BADGES } from '/assets/js/content.js?v=20261118a';
 
 /* ── 저장 ─────────────────────────── */
 const NS = 'el.';
@@ -24,6 +24,8 @@ try {
 } catch {}
 /* 저장할 때 어떤 기능을 썼는지 '이름만' 셉니다 (내용은 보내지 않아요) */
 const STORE_EVENT = { profile: 'saju_made', moods: 'mood_saved', notes: 'note_saved', plans: 'plan_saved', actions: 'action_done', relations: 'relation_saved' };
+/* 무엇이든 하나라도 남긴 기기 — 서비스가 잘 되고 있는지 보는 북극성 지표 */
+const KEEP = new Set(['mood_saved', 'note_saved', 'plan_saved', 'action_done']);
 export const store = {
   get(k, d = null) { try { const v = localStorage.getItem(NS + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) {
@@ -209,6 +211,19 @@ function beacon(payload) {
   } catch {}
   try { fetch('/api/e', { method: 'POST', body, keepalive: true, headers: { 'content-type': 'text/plain' } }).catch(() => {}); } catch {}
 }
+/* 한 번의 방문 = 30분. 몇 번째 화면인지만 세고, 방문에 번호를 붙이지는 않습니다. */
+const VISIT_GAP = 30 * 60e3;
+function visitTick() {
+  try {
+    const now = Date.now();
+    let s = JSON.parse(localStorage.getItem('el._vs') || 'null');
+    if (!s || now - s.t > VISIT_GAP) s = { t: now, n: 0 };
+    s.n += 1; s.t = now;
+    localStorage.setItem('el._vs', JSON.stringify(s));
+    return { start: s.n === 1, second: s.n === 2 };
+  } catch { return { start: false, second: false }; }
+}
+
 export function trackPage() {
   try {
     const day = kstToday();
@@ -216,13 +231,52 @@ export function trackPage() {
     const n = !localStorage.getItem('el._first');
     if (u) localStorage.setItem('el._seen', day);
     if (n) localStorage.setItem('el._first', day);
+    const v = visitTick();
     let r = '';
     try { const h = document.referrer ? new URL(document.referrer).hostname : ''; if (h && h !== location.hostname) r = h; } catch {}
     const w = Math.min(screen.width || innerWidth, innerWidth);
     const d = w < 768 ? 'm' : (w < 1100 && matchMedia('(pointer:coarse)').matches ? 't' : 'd');
-    beacon(u ? { p: location.pathname, u: 1, n: n ? 1 : 0, r, d } : { p: location.pathname });
+    const pay = { p: location.pathname };
+    if (u) { pay.u = 1; pay.n = n ? 1 : 0; pay.r = r; pay.d = d; }
+    if (v.start) pay.s = 1;
+    if (v.second) pay.d2 = 1;
+    beacon(pay);
+    watchDwell();
   } catch {}
 }
+
+/* 머문 시간과 읽어 내린 비율 — 화면을 떠날 때 한 번만 보냅니다.
+   다른 탭에 가 있는 동안은 세지 않아요. 그래야 '켜 두었다'와 '읽었다'가 섞이지 않습니다. */
+let dwellOn = false;
+function watchDwell() {
+  if (dwellOn || noTrack()) return;
+  dwellOn = true;
+  let acc = 0, mark = Date.now(), deep = 0, sent = false;
+  const pause = () => { if (mark) { acc += Date.now() - mark; mark = 0; } };
+  const resume = () => { if (!mark) mark = Date.now(); };
+  const depth = () => {
+    const h = document.documentElement;
+    const total = Math.max(1, h.scrollHeight - innerHeight);
+    const p = h.scrollHeight <= innerHeight + 24 ? 100 : Math.round((h.scrollTop / total) * 100);
+    deep = Math.min(100, Math.max(deep, p));
+  };
+  const flush = () => {
+    if (sent) return;
+    pause();
+    const t = Math.round(acc / 1000);
+    if (t < 2) { sent = true; return; }   // 잘못 눌러 바로 닫은 화면은 보내지 않습니다
+    sent = true;
+    depth();
+    beacon({ q: location.pathname, t, sd: deep });
+  };
+  depth();
+  addEventListener('scroll', depth, { passive: true });
+  addEventListener('visibilitychange', () => { document.hidden ? pause() : resume(); });
+  addEventListener('pagehide', flush);
+  // 사파리에서 pagehide 가 빠지는 경우를 대비합니다
+  addEventListener('visibilitychange', () => { if (document.hidden) setTimeout(() => { if (document.hidden) flush(); }, 1200); });
+}
+
 /* 같은 기능은 기기당 하루 한 번만 셉니다 */
 export function trackEvent(k, x = '') {
   try {
@@ -234,6 +288,7 @@ export function trackEvent(k, x = '') {
     log.k.push(id);
     localStorage.setItem('el._ev', JSON.stringify(log));
     beacon(x ? { k, x } : { k });
+    if (KEEP.has(k)) trackEvent('day_kept');
   } catch {}
 }
 
