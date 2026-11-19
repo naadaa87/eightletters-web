@@ -1,5 +1,6 @@
 /* tools/gen.mjs — 일주 60 · 절기 24 정적 페이지 + sitemap 생성
-   사용: node tools/gen.mjs  (저장소 루트에서) */
+   사용: cd tools && node --import ./assets-hook.mjs gen.mjs
+   (일주 한눈에 보기 표·절기 풍습 등 페이지별 내용은 아래 NAEUM · TERM_WHEN · TERM_CUSTOM 표에서 고칩니다) */
 import { writeFileSync, mkdirSync } from 'fs';
 import { STEM_P, BRANCH_P, TERM_EXTRA } from '../assets/js/content3.js';
 import { TERM_MEANING } from '../assets/js/content2.js';

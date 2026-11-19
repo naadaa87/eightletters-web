@@ -66,7 +66,7 @@ Pages가 GitHub에 연결되어 있으면 push만으로 배포가 끝납니다.
   ```bash
   grep -rl "yeodeol.kr" . --include="*.html" --include="*.xml" --include="*.txt" \
     --include="*.mjs" --include="*.js" | xargs sed -i 's/yeodeol\.kr/새주소/g'
-  cd tools && node gen.mjs
+  cd tools && node --import ./assets-hook.mjs gen.mjs
   ```
   `functions/_middleware.js` 의 `PRIMARY` 값도 함께 바꿔야 합니다.
 
@@ -172,7 +172,7 @@ test.mjs · t2.mjs  엔진 검증 (node test.mjs)
 일주·절기 문안을 고치려면 `assets/js/content3.js` 수정 후:
 
 ```bash
-cd tools && node gen.mjs && node docs.mjs && cd .. && node tools/stamp.mjs
+cd tools && node --import ./assets-hook.mjs gen.mjs && node docs.mjs && cd .. && node tools/stamp.mjs
 # 일주·절기 84페이지 + sitemap + rss + 문서 5화면 재생성 → 버전 꼬리표
 ```
 
