@@ -163,7 +163,7 @@ document.getElementById('todayLine').textContent =
 
 /* 일주 목록 */
 const iljuList = `  <section class="block" style="margin-top:26px;">
-    <div class="sec-head"><h2>예순 개의 일주</h2><span class="more">태어난 날 두 글자의 이야기</span></div>
+    <div class="sec-head"><h1>예순 개의 일주</h1><span class="more">태어난 날 두 글자의 이야기</span></div>
     <p style="font-size:14px;color:var(--sub);line-height:1.95;max-width:680px;margin:0 0 8px;">
       갑자에서 계해까지, 태어난 날의 두 글자는 예순 가지 중 하나예요. 일주는 여덟 글자 가운데
       나의 성격과 가장 가까운 자리라, 명리를 처음 만나는 사람은 대개 여기서 시작해요.
@@ -247,7 +247,7 @@ if (tm) document.getElementById('jgWhen').textContent =
 });
 
 const jgList = `  <section class="block" style="margin-top:26px;">
-    <div class="sec-head"><h2>스물네 번의 절기</h2><span class="more">계절이 바뀌는 자리마다 한 편씩</span></div>
+    <div class="sec-head"><h1>스물네 번의 절기</h1><span class="more">계절이 바뀌는 자리마다 한 편씩</span></div>
     <p style="font-size:14px;color:var(--sub);line-height:1.95;max-width:680px;margin:0 0 18px;">
       절기는 태양의 자리로 나눈 스물네 개의 계절 마디예요. 입춘에 한 해가 시작되고,
       동지에 밤이 가장 길어졌다가 낮이 다시 자라기 시작해요. 여덟글자는 절기마다 편지를 한 통씩 써요.
