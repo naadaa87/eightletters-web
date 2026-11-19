@@ -3,5 +3,6 @@ Allow: /
 Disallow: /share
 Disallow: /admin
 Disallow: /api/
+Disallow: /cdn-cgi/
 
 Sitemap: https://yeodeol.kr/sitemap.xml

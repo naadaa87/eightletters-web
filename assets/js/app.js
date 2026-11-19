@@ -4,8 +4,8 @@
      1) 익명 방문 숫자 — 경로와 '오늘 첫 방문인지' 여부. 쿠키·기기 번호 없음. GPC/DNT 를 켜면 보내지 않음
      2) 방문자가 직접 적어 보낸 문의
      3) 방문자가 직접 신청한 출시 알림 이메일 */
-import { todayInfo, fourPillars, tenGod, TEN_GODS, fmt, STEMS, ELEMENTS, ELEMENTS_HANJA, dateKey } from '/assets/js/saju.js?v=20261118a';
-import { EL_THEME, WEATHER, TEN_GOD_DAY, TAROT, STEM_DEF, BADGES } from '/assets/js/content.js?v=20261118a';
+import { todayInfo, fourPillars, tenGod, TEN_GODS, fmt, STEMS, ELEMENTS, ELEMENTS_HANJA, dateKey } from '/assets/js/saju.js?v=20261120a';
+import { EL_THEME, WEATHER, TEN_GOD_DAY, TAROT, STEM_DEF, BADGES } from '/assets/js/content.js?v=20261120a';
 
 /* ── 저장 ─────────────────────────── */
 const NS = 'el.';

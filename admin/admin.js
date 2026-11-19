@@ -1,6 +1,6 @@
 /* 여덟글자 관리자 — 한 파일 앱 (빌드 없음, ES 모듈)
    일진 계산은 본 서비스 saju.js 를 그대로 가져다 씁니다. 계산이 두 군데 있으면 언젠가 값이 어긋나니까요. */
-import { todayInfo, STEMS, BRANCHES } from '/assets/js/saju.js?v=20261118a';
+import { todayInfo, STEMS, BRANCHES } from '/assets/js/saju.js?v=20261120a';
 
 /* ════════ 이름표 ════════ */
 const ROLE = { owner: '최고관리자', manager: '운영', viewer: '조회' };
